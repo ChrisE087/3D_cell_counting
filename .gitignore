@@ -1,0 +1,15 @@
+# Ignore folders
+00-playground/ALT
+00-playground/export
+00-playground/test_data
+01-data_preparation/ALT
+02-dataset_generation/ALT
+02-dataset_generation/dataset
+04-conv_net/ALT
+04-conv_net/Log
+
+# Ignore files
+*.nrrd
+*.tif
+*.tiff
+*.pyc
