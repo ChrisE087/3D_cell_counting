@@ -34,7 +34,7 @@ def huber_loss_mean(y_true, y_pred, clip_delta=1.0):
 
 # Dataset Parameters
 path_to_dataset = os.path.join('..', '..', '..', 'Daten', 'dataset')
-num_of_train_samples = 500
+num_of_train_samples = 1000
 train_split = 0.8
 val_split = 0.1
 test_split = 0.1
@@ -56,7 +56,7 @@ standardize_input_data = True
 # Training parameters
 #learning_rate = 0.00001
 learning_rate = 0.001
-epochs = 32
+epochs = 64
 batch_size = 64
 optimizer = keras.optimizers.adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, 
                                   epsilon=None, decay=0.0, amsgrad=False)
@@ -112,6 +112,7 @@ y = y[:,:,:,:,np.newaxis]
 
 # Plot some data
 sample_num = 55
+#sample_num = 73
 X_plot = X[sample_num,:,:,:,0]
 y_plot = y[sample_num,:,:,:,0]
 
