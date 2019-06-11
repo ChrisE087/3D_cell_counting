@@ -133,7 +133,15 @@ class CNN():
                            loss_weights=None, sample_weight_mode=None, 
                            weighted_metrics=None, target_tensors=None)
         
-    def fit_model(self, epochs, train_generator, val_generator, callbacks):
+    def fit(self, X, y, batch_size, epochs, callbacks, validation_split, 
+            validation_data, shuffle=True):
+        
+        history = self.model.fit(x=X, y=y, batch_size=batch_size, epochs=epochs, 
+                                 verbose=1, callbacks=callbacks, validation_split=validation_split, 
+                                 validation_data=validation_data, shuffle=True)
+        return history
+    
+    def fit_generator(self, epochs, train_generator, val_generator, callbacks):
         
         history = self.model.fit_generator(generator=train_generator, 
                                  steps_per_epoch=None, epochs = epochs, 
@@ -145,10 +153,10 @@ class CNN():
                                  shuffle=True, initial_epoch=0)
         return history
         
-    def evaluate_model(self, X_test, y_test, batch_size=32, callbacks=None):
+    def evaluate_model(self, X_test, y_test, batch_size=32):
         
         test_loss = self.model.evaluate(x=X_test, y=y_test, batch_size=batch_size, verbose=1, 
-                            sample_weight=None, steps=None, callbacks=callbacks)
+                            sample_weight=None, steps=None)
         return test_loss
         
     def predict_sample(self, X_pred):
@@ -180,9 +188,20 @@ class CNN():
         
         return y_pred_batch
     
-    def save_model(self, path, model_name):
-        export_path = os.path.join(path, model_name+'h5')
+    def save_model_single_file(self, path, model_name):
+        export_path = os.path.join(path, model_name+'.h5')
         self.model.save(export_path)
+        
+    def save_model_json(self, path, model_name):
+        export_path = os.path.join(path, model_name+'.json')
+        model_json = self.model.to_json
+        with open(export_path, 'w') as json_file:
+            json_file.write(model_json)
+        json_file.close()
+        
+    def save_model_weights(self, path, weights_name):
+        export_path = os.path.join(path, weights_name+'.h5')
+        self.model.save_weights(export_path)
         
         
         

@@ -10,7 +10,7 @@ import nrrd
 from tools import image_io as bfio
 from tools import image_processing as impro
 
-path_to_data = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..', 'Daten'))
+path_to_data = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..', '..', 'Daten'))
 
 for directory in os.listdir(path_to_data):
     data_dir = os.path.join(path_to_data, directory, 'untreated')
@@ -28,5 +28,6 @@ for directory in os.listdir(path_to_data):
                             print('Processing file: ', seg_file)
                             centroids, header = nrrd.read(seg_file) #XYZ
                             gauss_centroids = impro.convolve_with_gauss(centroids, 50, 6)
+                            print(gauss_centroids.dtype)
                             nrrd_gauss_centroids_file = os.path.join(res_dir, 'gauss_centroids.nrrd')
                             nrrd.write(nrrd_gauss_centroids_file, data=gauss_centroids, header=header, index_order='F')

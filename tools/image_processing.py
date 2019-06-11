@@ -171,12 +171,15 @@ def convolve_with_gauss(raw_data, kernel_size, sigma):
     xx, yy, zz = np.meshgrid(x,y,z)
     
     # Build gaussian normal distribution kernel
-    norm_const = np.float64(1/((2*np.pi)**(3/2)*sigma**3))
-    kernel = norm_const*np.exp(-(xx**2 + yy**2 + zz**2)/(2*sigma**2))
+    norm_const = np.float32(1/((2*np.pi)**(3/2)*sigma**3))
+    kernel = norm_const*np.exp(-(xx**2 + yy**2 + zz**2)/(2*sigma**2), dtype=np.float32)
     
     # Convolve the data with the kernel
     #filtered = signal.convolve(raw_data, kernel, mode="same", method='direct')
     filtered = signal.fftconvolve(raw_data, kernel, mode="same")
+    
+    # Convert to float32 for machine-learning
+    filtered = filtered.astype(np.float32)
     
     return filtered
 
@@ -196,7 +199,7 @@ def normalize_data(input_data):
     max_val = np.max(input_data)
     min_val = np.min(input_data)
     normalized_data = (input_data - min_val)/(max_val-min_val)
-    normalized_data = normalized_data.astype('float')
+    normalized_data = normalized_data.astype(np.float32)
     return normalized_data, max_val, min_val
 
 def unnormalize_data(normalized_data, max_val, min_val):
@@ -211,9 +214,32 @@ def unnormalize_data(normalized_data, max_val, min_val):
     Returns:
     unnormalized_data (Numpy Array): Original data without normalization.
     """
-    normalized_data = normalized_data.astype('float64')
+    normalized_data = normalized_data.astype(np.float32)
     unnormalized_data = normalized_data*(max_val-min_val)+min_val
     return unnormalized_data
+
+def standardize_dataset(input_dataset, mode):
+    """
+    Standardizates the dataset in input_dataset, so it has a mean of zero and a
+    unit-variance.
+    
+    Parameters:
+    input_dataset (Numpy Array): NxWxHxS Numpy Array to standardize, where N is
+    the number of images in the dataset, W and H is the width and heigt and S
+    is the number of slices.
+    mode (String): Mode can be 'image_wise' so image-wise standardization is 
+    performed or 'whole_dataset' where the mean and standard-deviation of the 
+    whole dataset is calculated, so that the complete dataset has zero mean and
+    unit-variance.
+    
+    Returns:
+    standardized_dataset (Numpy Array): Standardizated dataset.
+    """
+    if mode == 'image_wise':
+        standardized_dataset = (input_dataset - input_dataset.mean(axis=(1,2,3), keepdims=True)) / input_dataset.std(axis=(1,2,3), keepdims=True)
+    if mode == 'whole_dataset':
+        standardized_dataset = (input_dataset - input_dataset.mean(axis=(0,1,2), keepdims=True)) / input_dataset.std(axis=(0,1,2), keepdims=True)
+    return standardized_dataset
 
 def standardize_data(input_data):
     """
@@ -290,7 +316,7 @@ def scale_data(data, factor):
     scaled_data (Numpy Array): Scaled data with factor.
     """
     scaled_data = data*factor
-    scaled_data = scaled_data.astype('uint16')
+    scaled_data = scaled_data.astype(np.uint16)
     return scaled_data
 
 def unscale_data(data, factor):
@@ -305,9 +331,9 @@ def unscale_data(data, factor):
     Returns:
     scaled_data (Numpy Array): Inverse scaled data with factor.
     """
-    unscaled_data = data.astype('float')
+    unscaled_data = data.astype(np.float32)
     unscaled_data = data/factor
-    return unscaled_data
+    return unscaled_data.astype(np.float32)
 
 def gen_patches(data, patch_slices, patch_rows, patch_cols, stride_slices, 
                 stride_rows, stride_cols, input_dim_order='XYZ', padding='VALID'):

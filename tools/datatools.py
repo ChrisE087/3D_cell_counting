@@ -51,26 +51,26 @@ def split_cultivation_period(path_to_dataset):
         
     return data_list_24h, data_list_48h, data_list_72h
 
-def load_data(path_to_dataset, data_list, standardize_input_data=False):
+def load_data(path_to_dataset, data_list, input_shape, standardize_input_data=False):
     # Get the shape of the data
-    filepath = os.path.join(path_to_dataset, data_list[0])
-    data, header = nrrd.read(filepath)
-    shape = data.shape
+#    filepath = os.path.join(path_to_dataset, data_list[0])
+#    data, header = nrrd.read(filepath)
+#    shape = data.shape
     
     # Make the data matrix
-    X_data = np.zeros(shape=(np.size(data_list), shape[1], shape[2], shape[3]))
-    y_data = np.zeros(shape=(np.size(data_list), shape[1], shape[2], shape[3]))
+    X_data = np.zeros(shape=(np.size(data_list), input_shape[0], input_shape[1], 
+                             input_shape[2]), dtype='float32')
+    y_data = np.zeros(shape=(np.size(data_list), input_shape[0], input_shape[1], 
+                             input_shape[2]), dtype='float32')
     
-    print (X_data.shape)
     for i in range(np.size(data_list)):
         filepath = os.path.join(path_to_dataset, data_list[i])
         data, header = nrrd.read(filepath)
-        X = data[0,]
-        y = data[1,]
-        if standardize_input_data == True:
-            X, mean, sigma = impro.standardize_data(X)
-        X_data[i,] = X
-        y_data[i,] = y
+        X_data[i,] = data[0,]
+        y_data[i,] = data[1,]
+    
+    if standardize_input_data == True:
+        X_data = impro.standardize_dataset(input_dataset = X_data, mode='image_wise')
         
     return X_data, y_data
             

@@ -80,23 +80,41 @@ def restore_volume(patches, output_dim_order='XYZ'):
         return np.transpose(slice_concat, axes=(2,1,0))
 
 
-input_data_path = os.path.join('test_data', 'test_output_data.nrrd')
-#output_data_path = os.path.join('test_data', 'test_output_data.nrrd')
+input_data_path = os.path.join('test_data', 'test_input_data.nrrd')
+output_data_path = os.path.join('test_data', 'test_output_data.nrrd')
 
 # Load the volumes
 input_data, input_data_header = nrrd.read(input_data_path) # XYZ
-#output_data, output_data_header = nrrd.read(output_data_path) # XYZ
+output_data, output_data_header = nrrd.read(output_data_path) # XYZ
 
+# Workaround
 ###############################################################################
 # Normalize the data
-#input_data = (input_data - np.min(input_data))/(np.max(input_data)-np.min(input_data))
-#input_data = np.float16(input_data)
+#output_data = (output_data - np.min(output_data))/(np.max(output_data)-np.min(output_data))
+#output_data = np.float16(output_data)
 #
-#input_data = input_data*65535
-#input_data = np.uint16(input_data)
+#output_data = output_data*65535
+#output_data = np.uint16(output_data)
 ###############################################################################
 
-input_data = np.float32(input_data)
+# Workaround Tensorflow
+###############################################################################
+# Normalize the data
+
+with tf.Session() as sess:
+    # Min-Max-Scaling
+    numerator = tf.math.subtract(output_data, np.min(output_data))
+    denominator = np.max(output_data)-np.min(output_data)
+    output_data = tf.math.scalar_mul(1/denominator, numerator)
+    #output_data = tf.math.divide(numerator, denominator)
+    
+    # Scale with factor
+    output_data = tf.math.scalar_mul(65535, output_data).eval()
+    sess.close()
+output_data = np.uint16(output_data)
+###############################################################################
+
+#input_data = np.float32(input_data)
 
 size_z = 128
 size_y = 128
@@ -105,12 +123,21 @@ size_x = 128
 patchesX = gen_patches(data=input_data, patch_slices=size_z, patch_rows=size_y, 
                       patch_cols=size_x, stride_slices=size_z, stride_rows=size_y, 
                       stride_cols=size_x, input_dim_order='XYZ', padding='SAME')
+patchesY = gen_patches(data=output_data, patch_slices=size_z, patch_rows=size_y, 
+                      patch_cols=size_x, stride_slices=size_z, stride_rows=size_y, 
+                      stride_cols=size_x, input_dim_order='XYZ', padding='SAME')
 
-plt.imshow(patchesX[1,0,1,1,:,:])
-#plt.imshow(patchesY[2,2,1,0,:,:])
+plt.imshow(patchesX[1,2,1,1,:,:])
+plt.imshow(patchesY[2,2,1,1,:,:])
 
 # Restore the original volume from the patches
-restored = restore_volume(patchesX, output_dim_order='XYZ')
+restoredX = restore_volume(patchesX, output_dim_order='XYZ')
+restoredY = restore_volume(patchesY, output_dim_order='XYZ')
 
-nrrd.write('restored.nrrd', restored)
+nrrd.write('restoredX.nrrd', restoredX)
+nrrd.write('restoredY.nrrd', restoredY)
+
+# Compare the sum
+print('Original sum: ', np.sum(output_data))
+print('Workaround sum: ', np.sum(restoredY))
 

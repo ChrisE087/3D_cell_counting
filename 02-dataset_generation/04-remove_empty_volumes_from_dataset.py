@@ -5,7 +5,7 @@ import shutil
 import sys
 sys.path.append("..")
 
-path_to_dataset = os.path.join('..', '..', 'Daten', 'dataset')
+path_to_dataset = os.path.join('..', '..', '..', 'Daten', 'dataset')
 path_to_padding_set = os.path.join(path_to_dataset, 'padded_files')
 
 # Create the target folder if it does not exist
@@ -25,8 +25,9 @@ for filename in os.listdir(path_to_dataset):
         print('Cannot open ', filename, ' permission error')
     # Check if the file exclusively consists of padding (sum over voxels must 
     # be greater than threshold)
-    threshold = 0.001    # Number of cells in patch
-    if np.sum(data[1,]) < threshold:
-        print('Moving file ', filename)
+    threshold = 0.05    # Number of cells in patch
+    cell_num = np.sum(data[1,])
+    if cell_num < threshold:
+        print('Moving file ', filename, ' cell number: ', cell_num)
         shutil.move(filepath, path_to_padding_set)
         

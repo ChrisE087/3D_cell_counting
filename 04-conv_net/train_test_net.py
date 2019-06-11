@@ -13,12 +13,6 @@ from tools import datagen
 from tools import image_processing as impro
 from tools import datatools
 
-
-'''
- ' Huber loss.
- ' https://jaromiru.com/2017/05/27/on-using-huber-loss-in-deep-q-learning/
- ' https://en.wikipedia.org/wiki/Huber_loss
-'''
 def huber_loss(y_true, y_pred, clip_delta=1.0):
   error = y_true - y_pred
   cond  = tf.keras.backend.abs(error) < clip_delta
@@ -40,16 +34,17 @@ def huber_loss_mean(y_true, y_pred, clip_delta=1.0):
 
 # Dataset Parameters
 path_to_dataset = os.path.join('..', '..', '..', 'Daten', 'dataset')
-train_split = 0.05
-val_split = 0.001
-test_split = 0.001
+num_of_train_samples = 500
+train_split = 0.8
+val_split = 0.1
+test_split = 0.1
 data_shape = (32, 32, 32)
 channels = 1
+data_scaling_factor = 2048000
 
 # Model Parameters
 input_shape = data_shape + (channels,)
 hidden_layer_activation='relu'
-#hidden_layer_activation = keras.layers.LeakyReLU(alpha=0.2)
 output_layer_activation = None
 padding = 'same'
 
@@ -57,7 +52,6 @@ padding = 'same'
 shuffle = False
 normalize_input_data = False
 standardize_input_data = True
-linear_output_scaling_factor = 2048000
 
 # Training parameters
 #learning_rate = 0.00001
@@ -66,7 +60,7 @@ epochs = 32
 batch_size = 64
 optimizer = keras.optimizers.adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, 
                                   epsilon=None, decay=0.0, amsgrad=False)
-loss = huber_loss
+loss = 'mse'
 metrics = ['mae']
 
 ###############################################################################
@@ -91,25 +85,46 @@ callbacks = [tensor_board_cb]
 # Make a list of training files
 data_list = os.listdir(path_to_dataset)
 
-# Split the file list of the dataset into spheroid cultivation period
-data_list_24h, data_list_48h, data_list_72h = datatools.split_cultivation_period(path_to_dataset)
+# Shuffle the data
+if shuffle == True:
+    np.random.shuffle(data_list)
+    
+# Reduce the dataset for testing
+data_list = data_list[0:num_of_train_samples]
 
-# Split the list of training files into train validation and test data
-train_24h, val_24h, test_24h = datatools.train_val_test_split(data_list_24h, train_split, 
-                                                            val_split, test_split, shuffle=shuffle)
-train_48h, val_48h, test_48h = datatools.train_val_test_split(data_list_48h, train_split, 
-                                                            val_split, test_split, shuffle=shuffle)
-train_72h, val_72h, test_72h = datatools.train_val_test_split(data_list_72h, train_split, 
-                                                            val_split, test_split, shuffle=shuffle)
+# Load the data
+X, y = datatools.load_data(path_to_dataset=path_to_dataset, 
+                                               data_list=data_list, input_shape=data_shape)
 
-# Concatenate the list of training files
-train_list = train_24h + train_48h + train_72h
-val_list = val_24h + val_48h + val_72h
-test_list = test_24h + test_48h + test_72h
+# Standardize X and Scale y
+if standardize_input_data == True:
+    # Standardize every image in the dataset
+    X = (X - X.mean(axis=(1,2,3), keepdims=True)) / X.std(axis=(1,2,3), keepdims=True)
+    
+    # Standardize the whole dataset
+    #standardized = (X - X.mean(axis=(0,1,2), keepdims=True)) / X.std(axis=(0,1,2), keepdims=True)
 
-# Undo the shuffeling for testing
-test_list = np.sort(test_list)
-test_list = test_list.tolist()
+y=y*data_scaling_factor
+
+# Add the channels
+X = X[:,:,:,:,np.newaxis]
+y = y[:,:,:,:,np.newaxis]
+
+# Plot some data
+sample_num = 55
+X_plot = X[sample_num,:,:,:,0]
+y_plot = y[sample_num,:,:,:,0]
+
+plot_slice = 15
+plt.imshow(X_plot[:,:,plot_slice])
+
+if data_scaling_factor == 1:
+    print('Number of cells in y_plot: ', np.sum(y_plot))
+    plt.imshow(y_plot[:,:,plot_slice])
+else:
+    print('Number of cells in y_plot: ', np.sum(y_plot/data_scaling_factor))
+    plt.imshow(y_plot[:,:,plot_slice]/data_scaling_factor)
+
 
 ###############################################################################
 # Define the model
@@ -126,44 +141,22 @@ cnn.compile_model(loss=loss, optimizer=optimizer, metrics=metrics)
 # Fit the model
 ###############################################################################
 
-train_generator = datagen.DataGenerator(path_to_dataset=path_to_dataset, 
-                                        filenames_list=train_list, dim=data_shape, 
-                                        channels=channels, batch_size=batch_size, shuffle=shuffle, 
-                                        normalize_input_data=normalize_input_data, 
-                                        standardize_input_data=standardize_input_data,
-                                        linear_output_scaling_factor=linear_output_scaling_factor)
-val_generator = datagen.DataGenerator(path_to_dataset=path_to_dataset, 
-                                      filenames_list=val_list, dim=data_shape, 
-                                      channels=channels, batch_size=batch_size, shuffle=shuffle, 
-                                      normalize_input_data=normalize_input_data, 
-                                      standardize_input_data=standardize_input_data,
-                                      linear_output_scaling_factor=linear_output_scaling_factor)
-
-history = cnn.fit_generator(epochs=epochs, train_generator=train_generator, val_generator=val_generator, 
-                       callbacks=callbacks)
-
-###############################################################################
-# Evaluate the model
-###############################################################################
-
-X_test_data, y_test_data = datatools.load_data(path_to_dataset=path_to_dataset, 
-                                               data_list=train_list, input_shape=data_shape,
-                                               standardize_input_data=standardize_input_data)
-test_loss = cnn.evaluate_model(X_test=np.expand_dims(X_test_data, axis=4), 
-                   y_test=np.expand_dims(y_test_data, axis=4), batch_size=batch_size)
+history = cnn.fit(X=X, y=y, batch_size=batch_size, epochs=epochs, callbacks=callbacks, 
+                  validation_split=val_split, validation_data=None, shuffle=True)
 
 ###############################################################################
 # Predict some data
 ###############################################################################
 
-X_test = X_test_data[55,]
-y_test = y_test_data[55,]
+y_pred = cnn.predict_sample(X_plot)
+y_pred = y_pred[0,:,:,:,0]
 
-#X_test = np.expand_dims(X_test, axis=3)
-y_pred = cnn.predict_sample(X_test)
-y_pred = y_pred[0,:,:,:,0]/linear_output_scaling_factor
+#y_pred = y_pred/32000
 
-plt.imshow(y_test[:,:,16])
-plt.imshow(y_pred[:,:,16])
-print('Number of cells (ground truth): ', np.sum(y_test))
-print('Number of cells (predicted): ', np.sum(y_pred))
+
+if data_scaling_factor == 1:
+    print('Number of cells in y_pred: ', np.sum(y_pred))
+    plt.imshow(y_pred[:,:,plot_slice])
+else:
+    print('Number of cells in y_pred: ', np.sum(y_pred/data_scaling_factor))
+    plt.imshow(y_pred[:,:,plot_slice]/data_scaling_factor)
