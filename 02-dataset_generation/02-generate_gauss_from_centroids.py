@@ -28,6 +28,8 @@ for directory in os.listdir(path_to_data):
                             print('Processing file: ', seg_file)
                             centroids, header = nrrd.read(seg_file) #XYZ
                             gauss_centroids = impro.convolve_with_gauss(centroids, 50, 6)
-                            print(gauss_centroids.dtype)
+                            print('Min: ', np.min(gauss_centroids))
+                            print('Max: ', np.max(gauss_centroids))
+                            print('Sum: ', np.sum(gauss_centroids))
                             nrrd_gauss_centroids_file = os.path.join(res_dir, 'gauss_centroids.nrrd')
                             nrrd.write(nrrd_gauss_centroids_file, data=gauss_centroids, header=header, index_order='F')

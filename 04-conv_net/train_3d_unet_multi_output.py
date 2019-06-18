@@ -8,7 +8,7 @@ import time
 import datetime
 import tensorflow as tf
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
-from tools.cnn import CNN
+from tools.cnn_multi_output import CNN
 from tools import datagen
 from tools import image_processing as impro
 from tools import datatools
@@ -40,9 +40,9 @@ def huber_loss_mean(y_true, y_pred, clip_delta=1.0):
 
 # Dataset Parameters
 path_to_dataset = os.path.join('..', '..', '..', 'Daten', 'dataset')
-train_split = 0.5
-val_split = 0.05
-test_split = 0.05
+train_split = 0.7
+val_split = 0.15
+test_split = 0.15
 data_shape = (32, 32, 32)
 channels = 1
 
@@ -57,12 +57,12 @@ padding = 'same'
 shuffle = True
 normalize_input_data = False
 standardize_input_data = True
-linear_output_scaling_factor = 1024000
+linear_output_scaling_factor = 2048000
 
 # Training parameters
 #learning_rate = 0.00001
 learning_rate = 0.001
-epochs = 8
+epochs = 64
 batch_size = 64
 optimizer = keras.optimizers.adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, 
                                   epsilon=None, decay=0.0, amsgrad=False)
@@ -166,11 +166,10 @@ cnn.save_model_single_file(export_path, 'model_single')
 # Load the model
 ###############################################################################
 
-load_model = True
-if load_model == True:
-    import_path = os.path.join(os.getcwd(), 'model_export', '2019-06-12_21-46-36')
-    #cnn.load_model_single_file(import_path, 'model_single')
-    cnn.load_model_json(import_path, 'model_json', 'model_weights')
+import_path = os.path.join(os.getcwd(), 'model_export', '2019-06-11_19-35-51')
+cnn.load_model_single_file(import_path, 'model_single')
+#cnn.load_model_json(import_path, 'architecture', 'best_weights')
+
 
 ###############################################################################
 # Predict some data
@@ -179,9 +178,9 @@ rand_int = np.random.randint(low=0, high=np.size(X_test_data, axis=0))
 X_test = X_test_data[rand_int,]
 y_test = y_test_data[rand_int,]
 
+#X_test = np.expand_dims(X_test, axis=3)
 y_pred = cnn.predict_sample(X_test)
 
-plt.imshow(X_test[:,:,16])
 plt.imshow(y_test[:,:,16])
 plt.imshow(y_pred[:,:,16])
 

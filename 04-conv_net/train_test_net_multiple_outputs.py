@@ -108,7 +108,13 @@ y=y*linear_output_scaling_factor
 
 # Add the channels
 X = X[:,:,:,:,np.newaxis]
-y = y[:,:,:,:,np.newaxis]
+y_main = y[:,:,:,:,np.newaxis]
+y_conv5 = y_main
+# Downsample y_conv5
+for i in range(y_conv5.shape[0]):
+    ##
+    
+
 
 # Plot some data
 sample_num = 55

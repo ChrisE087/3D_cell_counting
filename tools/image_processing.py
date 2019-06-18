@@ -181,6 +181,9 @@ def convolve_with_gauss(raw_data, kernel_size, sigma):
     # Convert to float32 for machine-learning
     filtered = filtered.astype(np.float32)
     
+    # Clip to remove negative values from overflow
+    filtered = np.clip(filtered, 0, np.max(filtered))
+    
     return filtered
 
 def normalize_data(input_data):
@@ -444,5 +447,61 @@ def restore_volume(patches, output_dim_order='XYZ'):
         return slice_concat
     if output_dim_order == 'XYZ':
         return np.transpose(slice_concat, axes=(2,1,0))
-
     
+def restore_volume_from_overlapped_patches(patches, shape_orig_data, strides):
+    stride_slices = strides[0]
+    stride_rows = strides[1]
+    stride_cols = strides[2]
+    
+    data_slices = shape_orig_data[0]
+    data_rows = shape_orig_data[1]
+    data_cols = shape_orig_data[2]
+    
+    patch_slices = patches.shape[3]
+    patch_rows = patches.shape[4]
+    patch_cols = patches.shape[5]
+    
+    # Calculate the size of the reconstructed volume (not so clear how TensorFlow
+    # calculates the Padding) -> savety distance. If safety distance is not enough
+    # ValueError :operands could not be broadcast together is thrown 
+    safety_distance = 4
+    if patch_slices / stride_slices == 1:
+        out_slices = data_slices
+    else:
+        print('patch_slices: ', patch_slices)
+        print('patches.shape[0]: ', patches.shape[0])
+        print('stride_slices: ', stride_slices)
+        out_slices = np.int(np.ceil(patch_slices/2)+patches.shape[0]*stride_slices) + safety_distance
+        
+    if patch_rows / stride_rows == 1:
+        out_rows = data_rows
+    else:
+        out_rows = np.int(np.ceil(patch_rows/2)+patches.shape[1]*stride_rows) + safety_distance
+    
+    if patch_cols / stride_cols == 1:
+        out_cols = data_cols
+    else:
+        out_cols = np.int(np.ceil(patch_cols/2)+patches.shape[2]*stride_cols) + safety_distance
+    
+    # Allocate Volume for reconstruction
+    reconstructed = np.zeros(shape=(out_slices, out_rows, out_cols))
+    print(reconstructed.shape)
+    
+    for slice_z in range(patch_slices):
+        for row in range(patch_rows):
+            for col in range(patch_cols):
+                # Extract patch
+                patch = patches[slice_z, row, col]
+                # Calculate the position to place this patch in the reconstructed volume
+                start_slice = slice_z*stride_slices
+                end_slice = start_slice + patch_slices
+                start_rows = row*stride_rows
+                end_rows = start_rows + patch_rows
+                start_cols = col*stride_cols
+                end_cols = start_cols + patch_cols
+                #rec = reconstructed[start_slice:end_slice, start_rows:end_rows, start_cols:end_cols]
+                reconstructed[start_slice:end_slice, start_rows:end_rows, start_cols:end_cols] += patch 
+                reconstructed[start_slice:end_slice, start_rows:end_rows, start_cols:end_cols] /2
+    return reconstructed
+    
+        
