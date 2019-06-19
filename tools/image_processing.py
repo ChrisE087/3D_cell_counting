@@ -448,6 +448,38 @@ def restore_volume(patches, output_dim_order='XYZ'):
     if output_dim_order == 'XYZ':
         return np.transpose(slice_concat, axes=(2,1,0))
     
+def get_weight_matrix(patch_size, strides):
+    """
+    Returns a weight matrix of patch_size with factors for superposition of
+    overlapping patches.
+    
+    Parameters:
+    patch_size (Tuple): Patch size in dimension order ZYX
+    strides (Tuple): Strides in direction ZYX
+    
+    Returns:
+    weight_matrix (Numpy Array): 3D Matrix of weights.
+    """
+    patch_size_z = patch_size[0]
+    patch_size_y = patch_size[1]
+    patch_size_x = patch_size[2]
+    
+    stride_z = strides[0]
+    stride_y = strides[1]
+    stride_x = strides[2]
+    
+    weight_matrix = np.ones(shape=(patch_size_z, patch_size_y, patch_size_x))
+    
+    weight_matrix[0:stride_z, stride_y:, 0:stride_x] *= 1/2
+    weight_matrix[0:stride_z, 0:stride_y, stride_x:] *= 1/2
+    weight_matrix[stride_z:, 0:stride_y:, 0:stride_x] *= 1/2
+    weight_matrix[0:stride_z, stride_y:, stride_x:] *= 1/4
+    weight_matrix[stride_z:, 0:stride_y, stride_x:] *= 1/4
+    weight_matrix[stride_z:, stride_y:, 0:stride_x] *= 1/4
+    weight_matrix[stride_z:, stride_y:, stride_x:] *= 1/8
+    
+    return weight_matrix
+
 def restore_volume_from_overlapped_patches(patches, shape_orig_data, strides):
     stride_slices = strides[0]
     stride_rows = strides[1]
@@ -484,7 +516,7 @@ def restore_volume_from_overlapped_patches(patches, shape_orig_data, strides):
         out_cols = np.int(np.ceil(patch_cols/2)+patches.shape[2]*stride_cols) + safety_distance
     
     # Allocate Volume for reconstruction
-    reconstructed = np.zeros(shape=(out_slices, out_rows, out_cols))
+    reconstructed = np.zeros(shape=(out_slices+50, out_rows+50, out_cols+50))
     print(reconstructed.shape)
     
     for slice_z in range(patch_slices):
@@ -503,5 +535,7 @@ def restore_volume_from_overlapped_patches(patches, shape_orig_data, strides):
                 reconstructed[start_slice:end_slice, start_rows:end_rows, start_cols:end_cols] += patch 
                 reconstructed[start_slice:end_slice, start_rows:end_rows, start_cols:end_cols] /2
     return reconstructed
+
+
     
         
