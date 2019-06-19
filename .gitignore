@@ -7,7 +7,9 @@
 02-dataset_generation/dataset
 04-conv_net/ALT
 04-conv_net/log
+04-conv_net/SAVED
 04-conv_net/model_export
+04-conv_net/export
 
 # Ignore files
 *.nrrd
