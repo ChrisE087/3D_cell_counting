@@ -28,18 +28,18 @@ import_path = os.path.join(os.getcwd(), 'model_export', '2019-06-12_21-46-36')
 cnn.load_model_json(import_path, 'model_json', 'model_weights')
 
 # Generate image patches
-size_z = 32
-size_y = 32
-size_x = 32
-stride_z = 24
-stride_y = 24
-stride_x = 24
+size_z = patch_slices = 32
+size_y = patch_rows = 32
+size_x = patch_cols = 32
+stride_z = stride_slices = 32
+stride_y = stride_rows = 32
+stride_x = stride_cols = 32
 patches = impro.gen_patches(data=data, patch_slices=size_z, patch_rows=size_y, 
                             patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y, 
                             stride_cols=stride_x, input_dim_order='XYZ', padding='VALID')
 
-p = patches[2,15,6,15,:,:]
-plt.imshow(p)
+#p = patches[2,15,6,15,:,:]
+#plt.imshow(p)
 predictions = np.zeros_like(patches, dtype=np.float32)
 
 # Predict the density-patches
@@ -51,8 +51,9 @@ for zslice in range(patches.shape[0]):
             predictions[zslice, row, col, :] = prediction
 
 ## Restore the volumes from the patches
-#nuclei = impro.restore_volume(patches=patches, output_dim_order='XYZ')         
-#density_map = impro.restore_volume(patches=predictions, output_dim_order='XYZ')
+nuclei = impro.restore_volume(patches=patches, output_dim_order='XYZ')         
+density_map = impro.restore_volume(patches=predictions, output_dim_order='XYZ')
+
 #
 ## Plot patch
 #pz = 0
@@ -69,22 +70,8 @@ for zslice in range(patches.shape[0]):
 #print (np.sum(y))
 #
 ## Print the sum of the whole density-map
-#print(np.sum(density_map))
-            
-            
-            
-###############################################################################
-            
-            
-            
-            
-            
-            
-            
-            
-###############################################################################
-            
-            
+print(np.sum(density_map))
+plt.imshow(density_map[:,:,150])
             
 
 # Save the results
