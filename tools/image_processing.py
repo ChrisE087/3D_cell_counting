@@ -217,9 +217,9 @@ def unnormalize_data(normalized_data, max_val, min_val):
     Returns:
     unnormalized_data (Numpy Array): Original data without normalization.
     """
-    normalized_data = normalized_data.astype(np.float32)
-    unnormalized_data = normalized_data*(max_val-min_val)+min_val
-    return unnormalized_data
+    #normalized_data = normalized_data.astype(np.float32)
+    #unnormalized_data = normalized_data*(max_val-min_val)+min_val
+    return (normalized_data*(max_val-min_val)+min_val).astype(np.float32)
 
 def standardize_dataset(input_dataset, mode):
     """
@@ -334,9 +334,10 @@ def unscale_data(data, factor):
     Returns:
     scaled_data (Numpy Array): Inverse scaled data with factor.
     """
-    unscaled_data = data.astype(np.float32)
-    unscaled_data = data/factor
-    return unscaled_data.astype(np.float32)
+    #unscaled_data = data.astype(np.float32)
+    #unscaled_data = data/factor
+    #return unscaled_data.astype(np.float32)
+    return (data/factor).astype(np.float32)
 
 def gen_patches(data, patch_slices, patch_rows, patch_cols, stride_slices, 
                 stride_rows, stride_cols, input_dim_order='XYZ', padding='VALID'):
@@ -390,7 +391,71 @@ def gen_patches(data, patch_slices, patch_rows, patch_cols, stride_slices,
         # t.shape[3] -> number of extracted patches in x-direction
         t = tf.reshape(t, [1, t.shape[1], t.shape[2], t.shape[3], 
                            patch_slices, patch_rows, patch_cols]).eval(session=sess)
-        sess.close()
+        #sess.close()
+    
+    # Remove the batch dimension
+    patches = t[0,:,:,:,:]
+    
+    # Remove the channel dimension
+    #if has_channels == False:
+        #patches = t[:,:,:,0]
+    
+    return patches
+
+def gen_patches2(session, data, patch_slices, patch_rows, patch_cols, stride_slices, 
+                stride_rows, stride_cols, input_dim_order='XYZ', padding='VALID'):
+    """
+    Generates patches of the Numpy Array data of the size patch_slices x 
+    patch_rows x patch_cols with stride_slices x stride stride_rows x
+    stride_cols.
+    
+    Parameters:
+    data (Numpy Array): Numpy Arrayout of which the patches are generated.
+    patch_slices (int): Number of slices (z-size) one patch should have.
+    patch_rows (int): Number of rows (y-size) one patch should have.
+    patch_cols (int): Number of columns (x-size) one patch should have.
+    stride_slices (int): Stride in slice direction (z-direction).
+    stride_rows (int): Stride in row direction (y-direction).
+    stride_cols (int): Stride in column direction (x-direction).
+    input_dim_order (String): String of the dimension order of data. Can be 
+    'XYZ' oder 'ZYX'.
+    padding (String): String which padding should be used. Can be 'VALID' 
+    (no padding) or 'SAME' (with zero-padding).
+    
+    Returns:
+    patches (Numpy Array): Generated Patches of size slice_indice x row_indice
+    x column_indice x image_slice x image_row x image_column
+    """
+    
+    # Reorder the dimensions to ZYX
+    if input_dim_order == 'XYZ':
+        data = np.transpose(data, axes=(2,1,0))
+    
+    # Check if the data has channels
+    if np.size(data.shape) != 3:
+        print('WARNING! Function is only meant to be used for data with one channel')
+        return
+    
+    # Expand dimension for depth (number of channels)
+    data = data[:,:,:,np.newaxis]
+    
+    # Expand the dimension for batches
+    data = data[np.newaxis,:,:,:,:]
+    
+    # Extract  patches of size patch_slices x patch_rows x patch_cols
+    t = tf.extract_volume_patches(data, ksizes=[1, patch_slices, patch_rows, patch_cols, 1], 
+                                  strides=[1, stride_slices, stride_rows, stride_cols, 1], 
+                                  padding=padding)
+    # t = session.run(t)
+
+    # Reshape the patches to 3D
+    # t.shape[1] -> number of extracted patches in z-direction
+    # t.shape[2] -> number of extracted patches in y-direction
+    # t.shape[3] -> number of extracted patches in x-direction
+    t = tf.reshape(t, [1, t.shape[1], t.shape[2], t.shape[3], 
+                       patch_slices, patch_rows, patch_cols])
+    
+    t = session.run(t)
     
     # Remove the batch dimension
     patches = t[0,:,:,:,:]
@@ -447,6 +512,32 @@ def restore_volume(patches, output_dim_order='XYZ'):
         return slice_concat
     if output_dim_order == 'XYZ':
         return np.transpose(slice_concat, axes=(2,1,0))
+    
+def get_inner_slice(data, border):
+    """
+    Returns the inner volume of the 3D-volume in data by cutting of the border
+    specified by the border-size in border.
+    
+    Parameters:
+    data (Numpy-Array): 3D Matrix.
+    border (3D-Tuple): Size of the border of the matrix in each dimension, 
+    which should be cut off.
+    
+    Returns:
+    inner_slice (Numpy-Array): Inner slice of the 3D Matrix 
+    """
+    d0_start = border[0]
+    d0_end = data.shape[0]-border[0]
+    d1_start = border[1]
+    d1_end = data.shape[1]-border[1]
+    d2_start = border[2]
+    d2_end = data.shape[2]-border[2]
+    inner_slice = data[d0_start:d0_end, d1_start:d1_end, d2_start:d2_end]
+    return inner_slice
+
+###############################################################################
+# For testing
+###############################################################################
     
 def get_weight_matrix(patch_size, strides):
     """
@@ -535,6 +626,8 @@ def restore_volume_from_overlapped_patches(patches, shape_orig_data, strides):
                 reconstructed[start_slice:end_slice, start_rows:end_rows, start_cols:end_cols] += patch 
                 reconstructed[start_slice:end_slice, start_rows:end_rows, start_cols:end_cols] /2
     return reconstructed
+
+
 
 
     
