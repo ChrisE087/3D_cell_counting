@@ -3,6 +3,7 @@ sys.path.append("..")
 import os
 import nrrd
 import numpy as np
+import tensorflow as tf
 from tools import image_processing as impro
 
 
@@ -15,12 +16,12 @@ def get_files_in_directory(a_dir):
     return files
 
 # Specify the size of each patch
-size_z = 32
-size_y = 32
-size_x = 32
-stride_z = 24
-stride_y = 24
-stride_x = 24
+size_z = 64
+size_y = 64
+size_x = 64
+stride_z = 32
+stride_y = 32
+stride_x = 32
 
 # Specify the path to the dataset
 path_to_dataset = os.path.join('dataset')
@@ -56,9 +57,9 @@ for subdir1 in subdirs1:
                     print('Current Spheroid: ', spheroid)
                     for subdir3 in subdirs3:
                         # OpensegSPIM results level
-                        if spheroid_name in subdir3 and not "24h" in subdir1 and not "48h" in subdir1:
-                            if 'C2-untreated_4' in spheroid:
-                                #if not 'C1-untreated_1.1' in spheroid:
+                        if spheroid_name in subdir3 and not "48h" in subdir1 and not "72h" in subdir1:
+                            #if 'C2-untreated_4' in spheroid:
+                            if not 'C1-untreated_1.1' in spheroid:
                                 result_dir = os.path.join(untreated_dir, subdir3)
                                 centroids_file = os.path.join(result_dir, 'gauss_centroids.nrrd')
                                 print('Corresponding Centroid: ', centroids_file)
