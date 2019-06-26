@@ -230,18 +230,22 @@ def standardize_dataset(input_dataset, mode):
     input_dataset (Numpy Array): NxWxHxS Numpy Array to standardize, where N is
     the number of images in the dataset, W and H is the width and heigt and S
     is the number of slices.
-    mode (String): Mode can be 'image_wise' so image-wise standardization is 
-    performed or 'whole_dataset' where the mean and standard-deviation of the 
+    mode (String): Mode can be 'slice_wise' so slice-wise standardization is 
+    performed or 'batch_wise' where the mean and standard-deviation of the 
     whole dataset is calculated, so that the complete dataset has zero mean and
     unit-variance.
     
     Returns:
     standardized_dataset (Numpy Array): Standardizated dataset.
     """
-    if mode == 'image_wise':
+    if mode == 'slice_wise':
+        print('Slice wise standardization')
         standardized_dataset = (input_dataset - input_dataset.mean(axis=(1,2,3), keepdims=True)) / input_dataset.std(axis=(1,2,3), keepdims=True)
-    if mode == 'whole_dataset':
+    elif mode == 'batch_wise':
+        print('Batch wise standardization')
         standardized_dataset = (input_dataset - input_dataset.mean(axis=(0,1,2), keepdims=True)) / input_dataset.std(axis=(0,1,2), keepdims=True)
+    else:
+        print('Warning! Data not standardizated. Only modes "slice_wise" and "batch_wise" are allowed.')
     return standardized_dataset
 
 def standardize_data(input_data):
@@ -429,7 +433,7 @@ def gen_patches2(session, data, patch_slices, patch_rows, patch_cols, stride_sli
     
     # Reorder the dimensions to ZYX
     if input_dim_order == 'XYZ':
-        data = np.transpose(data, axes=(2,1,0))
+        data = np.transpose(data, axes=(2,1,0)) # ZYX
     
     # Check if the data has channels
     if np.size(data.shape) != 3:
@@ -466,13 +470,17 @@ def gen_patches2(session, data, patch_slices, patch_rows, patch_cols, stride_sli
     
     return patches
 
-def restore_volume(patches, output_dim_order='XYZ'):
+def restore_volume(patches, border=None, output_dim_order='XYZ'):
     """
     Given patches,  this function restores the original image.
     
     Parameters:
     patches (Numpy Array): Patches of size slice_indice x row_indice x 
     column_indice x image_slice x image_row x image_column.
+    border (Tuple): 3D Tuple of the boarder in each dimension, which should be
+    cut off from the prediction. For example a 64x64x64 prediction with a 
+    border of (16, 16, 16) results in a 32x32x32 prediction (the inner volume)
+    is sliced out.
     output_dim_order (String): Specifies the return dimension order. Could be
     'XYZ' or 'ZYX'
     
@@ -489,6 +497,9 @@ def restore_volume(patches, output_dim_order='XYZ'):
                 
                 # First column-patch? -> Initialize a volume, else concatenate with the
                 # last patch on the column-axis
+                
+                if border != None:
+                    patch = get_inner_slice(data=patch, border=border)
                 if(col == 0):
                     col_concat = patch
                 else:

@@ -11,7 +11,8 @@ class DataGenerator(keras.utils.Sequence):
     
     def __init__(self, path_to_dataset, filenames_list, dim, channels=1, batch_size=32, 
                  shuffle=True, normalize_input_data=False, standardize_input_data=False, 
-                 linear_output_scaling_factor=1):
+                 standardization_mode='volume_wise', linear_output_scaling_factor=1, 
+                 border=None):
         
         # Initialize the class
         self.path_to_dataset = path_to_dataset
@@ -22,7 +23,9 @@ class DataGenerator(keras.utils.Sequence):
         self.shuffle = shuffle
         self.normalize_input_data = normalize_input_data
         self.standardize_input_data = standardize_input_data
+        self.standardization_mode = standardization_mode
         self.linear_output_scaling_factor = linear_output_scaling_factor
+        self.border = border
     
     def on_epoch_end(self):
         #print('CALL on_epoch_end')
@@ -57,7 +60,9 @@ class DataGenerator(keras.utils.Sequence):
         # Generates a batch of data
         X, y = datatools.load_data(path_to_dataset=self.path_to_dataset, 
                                    data_list=filenames, input_shape=self.dim, 
-                                   standardize_input_data=self.standardize_input_data)
+                                   standardize_input_data=self.standardize_input_data,
+                                   standardization_mode=self.standardization_mode,
+                                   border=self.border)
         if self.normalize_input_data == True:
             print('WARNING: Datset-wise Data normalization in datagen not implemented yet')
         y = y*self.linear_output_scaling_factor
