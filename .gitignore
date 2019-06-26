@@ -2,6 +2,11 @@
 00-playground/ALT
 00-playground/export
 00-playground/test_data
+00-playground_NN/export
+00-playground_NN/logs
+00-playground_NN/mini_dataset
+00-playground_NN/model_export
+00-playground_NN/test_data
 01-data_preparation/ALT
 02-dataset_generation/ALT
 02-dataset_generation/dataset
