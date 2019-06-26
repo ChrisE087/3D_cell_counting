@@ -22,9 +22,9 @@ data = data.astype(np.float32)
 plt.imshow(data[:,:,55])
 
 # Load the CNN
-linear_output_scaling_factor = 1024000
+linear_output_scaling_factor = 2048000
 cnn = CNN(linear_output_scaling_factor)
-import_path = os.path.join(os.getcwd(), 'model_export', '2019-06-12_21-46-36')
+import_path = os.path.join(os.getcwd(), 'model_export', '2019-06-25_10-15-30')
 cnn.load_model_json(import_path, 'model_json', 'model_weights')
 
 # Generate image patches
