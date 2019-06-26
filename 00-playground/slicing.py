@@ -3,6 +3,8 @@ sys.path.append("..")
 import numpy as np
 import nrrd
 import matplotlib.pyplot as plt
+import tensorflow as tf
+import keras
 from tools import image_processing as impro
 
 
@@ -43,3 +45,20 @@ plt.imshow(Y[:,:,plt_slice])
 plt_slice = 16
 plt.imshow(X_slice[:,:,plt_slice])
 plt.imshow(Y_slice[:,:,plt_slice])
+
+# Slicing with tensorflow
+X_tf = tf.convert_to_tensor(X)
+Y_tf = tf.convert_to_tensor(Y)
+print(X_tf.shape)
+print(Y_tf.shape)
+
+X_tf_slice = tf.slice(X_tf, [16,16,16], [32, 32, 32])
+Y_tf_slice = tf.slice(Y_tf, [16,16,16], [32, 32, 32])
+print(X_tf_slice.shape)
+print(Y_tf_slice.shape)
+X_tf_slice = tf.Session().run(X_tf_slice)
+
+
+
+loss = keras.losses.mean_squared_error(Y, Y+5)
+print(loss)
