@@ -33,6 +33,7 @@ Y, y_header = nrrd.read(path_Y) # XYZ
 Y_s = Y*409600000000
 print(np.min(Y_s))
 print(np.max(Y_s))
+print(X.shape)
 
 # Specify the extracted size of the mini dataset
 size_X = 200
@@ -40,9 +41,13 @@ size_Y = 200
 size_Z = 200
 
 # Calculate the center of the volume
-c_X = int(X.shape[0]/2)
-c_Y = int(X.shape[1]/2)
-c_Z = int(X.shape[2]/2)
+#c_X = int(X.shape[0]/2)
+#c_Y = int(X.shape[1]/2)
+#c_Z = int(X.shape[2]/2)
+
+c_X = 110
+c_Y = 110
+c_Z = 250
 
 # Slice a volume out of the center
 X_s = X[c_X-int(size_X/2):c_X+int(size_X/2), 
