@@ -903,12 +903,17 @@ class CNN():
                                  shuffle=True, initial_epoch=0)
         return history
         
-    def evaluate_model(self, X_test, y_test, batch_size=32):
-        
-        ###################################
-        # !!
-        # Standardize the input data
-        
+    def evaluate_model(self, X_test, y_test, batch_size):
+
+        # Standardize the model input
+        if self.standardize_input_data == True and self.standardization_mode == 'volume_wise':
+            for i in X_test.shape[0]:
+                X_test[i,], mean, sigma = impro.standardize_data(X_test[i,])
+            
+        if self.standardize_input_data == True:
+            if self.standardization_mode == 'slice_wise' or self.standardization_mode == 'batch_wise':
+                impro.standardize_dataset(input_dataset=X_test, mode=self.standardization_mode)    
+            
         test_loss = self.model.evaluate(x=X_test, y=y_test, batch_size=batch_size, verbose=1, 
                             sample_weight=None, steps=None)
         return test_loss
@@ -924,7 +929,7 @@ class CNN():
         
         if self.standardize_input_data == True:
             if self.standardization_mode == 'slice_wise' or self.standardization_mode == 'batch_wise':
-                impro.standardize_dataset(input_dataset=X_pred, mode=self.standardization_mode)
+                X_pred = impro.standardize_dataset(input_dataset=X_pred, mode=self.standardization_mode)
 
         # Predict y
         y_pred = self.model.predict(X_pred)
@@ -946,7 +951,7 @@ class CNN():
         
         if self.standardize_input_data == True:
             if self.standardization_mode == 'slice_wise' or self.standardization_mode == 'batch_wise':
-                impro.standardize_dataset(input_dataset=X_pred, mode=self.standardization_mode)
+                X_pred_batch = impro.standardize_dataset(input_dataset=X_pred, mode=self.standardization_mode)
         
         # Predict y
         y_pred_batch = self.model.predict(X_pred_batch)

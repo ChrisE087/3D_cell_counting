@@ -238,14 +238,14 @@ def standardize_dataset(input_dataset, mode):
     Returns:
     standardized_dataset (Numpy Array): Standardizated dataset.
     """
-    if mode == 'slice_wise':
-        print('Slice wise standardization')
+    if mode == 'volume_wise':
+        #print('Volume wise standardization')
         standardized_dataset = (input_dataset - input_dataset.mean(axis=(1,2,3), keepdims=True)) / input_dataset.std(axis=(1,2,3), keepdims=True)
     elif mode == 'batch_wise':
-        print('Batch wise standardization')
+        #print('Batch wise standardization')
         standardized_dataset = (input_dataset - input_dataset.mean(axis=(0,1,2), keepdims=True)) / input_dataset.std(axis=(0,1,2), keepdims=True)
     else:
-        print('Warning! Data not standardizated. Only modes "slice_wise" and "batch_wise" are allowed.')
+        print('Warning! Data not standardizated. Only modes "volume_wise" and "batch_wise" are allowed.')
     return standardized_dataset
 
 def standardize_data(input_data):
