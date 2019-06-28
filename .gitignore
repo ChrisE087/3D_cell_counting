@@ -9,6 +9,8 @@
 00-playground_NN/test_data
 01-data_preparation/ALT
 02-dataset_generation/ALT
+00-templates/ALT
+tools/ALT
 02-dataset_generation/dataset
 04-conv_net/ALT
 04-conv_net/log
