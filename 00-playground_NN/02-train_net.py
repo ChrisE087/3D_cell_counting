@@ -18,7 +18,7 @@ from tools import datatools
 ###############################################################################
 
 # Dataset Parameters
-path_to_dataset = os.path.join('mini_dataset')
+path_to_dataset = os.path.join('mini_dataset', 'upper_left')
 train_split = 0.8
 val_split = 0.1
 test_split = 0.1
@@ -36,7 +36,7 @@ padding = 'same'
 shuffle = True
 normalize_input_data = False
 standardize_input_data = True
-standardization_mode = None#'volume_wise' # None, 'volume_wise' or 'slice_wise'
+standardization_mode = 'volume_wise' # None, 'volume_wise' or 'slice_wise'
 #border = (int(data_shape[0]/4), int(data_shape[1]/4), int(data_shape[2]/4))
 border = None
 linear_output_scaling_factor = 409600000000
@@ -140,7 +140,7 @@ history = cnn.fit_generator(epochs=epochs, train_generator=train_generator, val_
 # Load unstandardized test data
 X_test_data, y_test_data = datatools.load_data(path_to_dataset=path_to_dataset, 
                                                data_list=test_list, input_shape=data_shape,
-                                               standardize_input_data=standardize_input_data,
+                                               standardize_input_data=False,
                                                standardization_mode=None,
                                                border=border)
 if evaluate == True:

@@ -22,10 +22,11 @@ plt.imshow(data[:,:,55])
 
 # Load the CNN
 linear_output_scaling_factor = 409600000000
-standardization_mode = None#'volume_wise'
+standardize_input_data = True
+standardization_mode = 'volume_wise'
 cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor, 
           standardize_input_data=True, standardization_mode=standardization_mode)
-import_path = os.path.join(os.getcwd(), 'model_export', '2019-06-27_10-34-05')
+import_path = os.path.join(os.getcwd(), 'model_export', '2019-06-27_13-56-38')
 cnn.load_model_json(import_path, 'model_json', 'model_weights')
 
 # Generate image patches
@@ -85,4 +86,4 @@ print(np.sum(density_map))
 
 # Save the results
 nrrd.write('nuclei.nrrd', nuclei)
-nrrd.write('density_map3.nrrd', density_map)
+nrrd.write('density_map5.nrrd', density_map)
