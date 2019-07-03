@@ -4,6 +4,7 @@ import os
 import nrrd
 import numpy as np
 import tensorflow as tf
+import sys
 from tools import image_processing as impro
 
 
@@ -16,12 +17,16 @@ def get_files_in_directory(a_dir):
     return files
 
 # Specify the size of each patch
-size_z = 64
-size_y = 64
-size_x = 64
-stride_z = 32
-stride_y = 32
-stride_x = 32
+size_z = 32
+size_y = 32
+size_x = 32
+stride_z = 16
+stride_y = 16
+stride_x = 16
+
+# Specify the threshold for saving a patch. Patches in which the numer of cells 
+# is greater than the threshold are saved to disk.
+thresh = 0.0
 
 # Specify the path to the dataset
 path_to_dataset = os.path.join('dataset')
@@ -36,6 +41,8 @@ if not os.path.exists(path_to_dataset):
 
 path_to_data = os.path.join('..', '..', '..', 'Daten')
 subdirs1 = get_immediate_subdirectories(path_to_data)
+
+session = tf.Session()
 
 for subdir1 in subdirs1:
     if '24h' in subdir1 or '48h' in subdir1 or '72h' in subdir1:
@@ -57,9 +64,8 @@ for subdir1 in subdirs1:
                     print('Current Spheroid: ', spheroid)
                     for subdir3 in subdirs3:
                         # OpensegSPIM results level
-                        if spheroid_name in subdir3 and not "48h" in subdir1 and not "72h" in subdir1:
-                            #if 'C2-untreated_4' in spheroid:
-                            if not 'C1-untreated_1.1' in spheroid:
+                        if spheroid_name in subdir3 and not "24h" in subdir1 and not "48h" in subdir1:
+                            if 'C2-untreated_4' in spheroid:
                                 result_dir = os.path.join(untreated_dir, subdir3)
                                 centroids_file = os.path.join(result_dir, 'gauss_centroids.nrrd')
                                 print('Corresponding Centroid: ', centroids_file)
@@ -68,53 +74,71 @@ for subdir1 in subdirs1:
                                 time_range = split[4]
                                 
                                 # Read the data
+                                print('Reading the data...')
                                 X, X_header = nrrd.read(spheroids_file) #XYZ
                                 Y, Y_header = nrrd.read(centroids_file) #XYZ
                                 
-                                # Scale the target data
+                                # WORKAROUND: Scale the target data (Normalize and 
+                                # scale with factor) and make a unit16 
+                                # dataset, because when using float32 or float64 the 
+                                # tensorflow method extract_volume_patches() 
+                                # moves the input and target patches or volumes 
+                                # relative to each other
+                                print('Calculating the workaround...')
                                 Y, max_val, min_val = impro.normalize_data(Y)
                                 Y = impro.scale_data(Y, 65535)
                                 
                                 print('Generating image patches for input data...')
-                                # Generate the image patches
-                                patches_X = impro.gen_patches(data=X, patch_slices=size_z, patch_rows=size_y, 
+                                # Generate the image patches of dimension-order ZYX. 
+                                # With the parameter 'input_dim_order='XYZ' the
+                                # input data 'X' is transposed to 'ZYX' before generating
+                                # the patches. So the patches are in dimension-order 'ZYX'
+                                patches_X = impro.gen_patches(session=session, data=X, patch_slices=size_z, patch_rows=size_y, 
                                                         patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y, 
                                                         stride_cols=stride_x, input_dim_order='XYZ', padding='SAME') #ZYX
     
                                 print('Generating image patches for target data...')
-                                patches_y = impro.gen_patches(data=Y, patch_slices=size_z, patch_rows=size_y, 
+                                patches_y = impro.gen_patches(session=session, data=Y, patch_slices=size_z, patch_rows=size_y, 
                                                         patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y, 
                                                         stride_cols=stride_x, input_dim_order='XYZ', padding='SAME') #ZYX
                                 
-                                # Unscale the target data
+                                # Unscale the data and make a float32 dataset again
+                                print('Undo the workaround...')
                                 patches_y = impro.unscale_data(patches_y, 65535)
                                 patches_y = impro.unnormalize_data(patches_y, max_val, min_val)
                                 
+                                print('Saving patches for ', spheroid, '...')
                                 # Create the dataset 
                                 num_patches = patches_X.shape[0] * patches_X.shape[1] * patches_X.shape[2]
                                 p=0
                                
-                                for a in range (patches_X.shape[0]):
-                                    for b in range (patches_X.shape[1]):
-                                        for c in range (patches_X.shape[2]):
-                                            print('Writing patch ', p, ' of ', num_patches)
+                                for pz in range (patches_X.shape[0]):
+                                    for py in range (patches_X.shape[1]):
+                                        for px in range (patches_X.shape[2]):
+                                            if p % 100 == 0:
+                                                progress = p*100/num_patches
+                                                sys.stdout.write('\r' + "{0:.2f}".format(progress) + '%')
+                                                sys.stdout.flush()
+                                            #print('Writing patch ', p, ' of ', num_patches)
                                             
                                             # Read a sample out of the input and target data
-                                            patch_x = patches_X[a, b, c,:,:,:]
-                                            patch_y = patches_y[a, b, c,:,:,:]
+                                            patch_x = patches_X[pz,py,px,:,:,:]
+                                            patch_y = patches_y[pz,py,px,:,:,:]
                                             
-                                            # Generate a sample
-                                            sample = np.zeros(shape=(2, patch_x.shape[0], patch_x.shape[1], patch_x.shape[2]), dtype=np.float32)
-                                            sample[0] = patch_x
-                                            sample[1] = patch_y
-                                            
-                                            # Transpose the data back to XYZ
-                                            sample = np.transpose(sample, axes=(0,3,2,1))
-                                            
-                                            # Save the input and target data sample                             
-                                            sample_name = "%s_%s-%04d.nrrd" % (time_range, spheroid_name, p)
-                                            out_file = os.path.join(path_to_dataset, sample_name)
-                                            header = {"max_val": max_val, "min_val": min_val, "spacings": X_header.get('spacings'), "units": X_header.get('units')} # Add the scale factors to the header
-                                            nrrd.write(out_file, data=sample, header=header)
+                                            # Don't save the paddings
+                                            if(np.sum(patch_y) > thresh):
+                                                # Generate a pair of data
+                                                sample = np.zeros(shape=(2, patch_x.shape[0], patch_x.shape[1], patch_x.shape[2]), dtype=np.float32)
+                                                sample[0] = patch_x
+                                                sample[1] = patch_y
+                                                
+                                                # Transpose the data back to XYZ
+                                                #sample = np.transpose(sample, axes=(0,3,2,1))
+                                                
+                                                # Save the input and target data sample                             
+                                                sample_name = "%s_%s-%08d.nrrd" % (time_range, spheroid_name, p)
+                                                out_file = os.path.join(path_to_dataset, sample_name)
+                                                header = {"max_val": max_val, "min_val": min_val, "spacings": X_header.get('spacings'), "units": X_header.get('units')} # Add the scale factors to the header
+                                                nrrd.write(out_file, data=sample, header=header)
                                             
                                             p += 1
