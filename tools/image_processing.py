@@ -221,34 +221,66 @@ def unnormalize_data(normalized_data, max_val, min_val):
     #unnormalized_data = normalized_data*(max_val-min_val)+min_val
     return (normalized_data*(max_val-min_val)+min_val).astype(np.float32)
 
-def standardize_dataset(input_dataset, mode):
+def standardize_data(data, mode='per_sample', epsilon=1e-8):
     """
-    Standardizates the dataset in input_dataset, so it has a mean of zero and a
+    Standardizates the dataset in data, so it has a mean of zero and a
     unit-variance.
     
     Parameters:
-    input_dataset (Numpy Array): NxWxHxS Numpy Array to standardize, where N is
-    the number of images in the dataset, W and H is the width and heigt and S
-    is the number of slices.
-    mode (String): Mode can be 'slice_wise' so slice-wise standardization is 
-    performed or 'batch_wise' where the mean and standard-deviation of the 
-    whole dataset is calculated, so that the complete dataset has zero mean and
-    unit-variance.
+    input_dataset (Numpy Array): (N)xSxHxW Numpy Array to standardize, where N
+    is the number of images in the dataset, H and W is the height and width and
+    S is the number of slices. If the size of the shape of data is equal to 4, 
+    axis 0 is interpreted as the batch dimension. When the shape of data is 
+    equal to 3, a batch dimension is added and later removed.
+    mode (String): Mode can be 'per_slice' so slice-wise standardization is 
+    performed, 'per_sample' where every 3D sample in the batch is standardized
+    or 'per_batch' where the mean and standard-deviation of the 
+    whole batch is calculated, so that the complete dataset has zero mean and
+    unit-variance. If batch_dim=False and mode='per_batch', the 'per_batch'
+    normalization is equal to 'per_sample' normalization.
+    epsilon (float): Small number to avoid division of zero on uniform 
+    datasets.
     
     Returns:
     standardized_dataset (Numpy Array): Standardizated dataset.
     """
-    if mode == 'volume_wise':
-        #print('Volume wise standardization')
-        standardized_dataset = (input_dataset - input_dataset.mean(axis=(1,2,3), keepdims=True)) / input_dataset.std(axis=(1,2,3), keepdims=True)
-    elif mode == 'batch_wise':
-        #print('Batch wise standardization')
-        standardized_dataset = (input_dataset - input_dataset.mean(axis=(0,1,2), keepdims=True)) / input_dataset.std(axis=(0,1,2), keepdims=True)
+    if np.size(data.shape) > 4:
+        print('WARNING! Data is not standardized, because arrays of a \
+              dimension > 4 are not supported.')
+    
+    remove_batch_dim = False
+    # Add the batch dimension
+    if np.size(data.shape) == 3:
+        data = data[np.newaxis, ]
+        remove_batch_dim = True
+    
+    # Standardize the data dependig on the specified mode
+    if mode == 'per_slice':
+        mean = data.mean(axis=(2,3), keepdims=True)
+        std = data.std(axis=(2,3), keepdims=True)
+        standardized_data = (data-mean)/(std+epsilon)
+    elif mode == 'per_sample':
+        mean = data.mean(axis=(1,2,3), keepdims=True)
+        std = data.std(axis=(1,2,3), keepdims=True)
+        standardized_data = (data-mean)/(std+epsilon)
+    elif mode == 'per_batch':
+        mean = data.mean()
+        std = data.std()
+        standardized_data = (data-mean)/(std+epsilon)
     else:
-        print('Warning! Data not standardizated. Only modes "volume_wise" and "batch_wise" are allowed.')
-    return standardized_dataset
+        print('WARNING! Data is not standardized, because the selected mode is\
+              not supported. Modes are only "per_slice" for slice-wise\
+              normalization, "per_sample" for sample-wise normalization or\
+              "per_batch" for normalization of the whole batch.')
+        return data
+            
+    # Remove the batch dimension
+    if remove_batch_dim == True:
+        standardized_data = standardized_data[0,]
+        
+    return standardized_data
 
-def standardize_data(input_data):
+def standardize_volume(input_data):
     """
     Standardizates the data in input_data, so it has a mean of zero and a
     unit-variance.
@@ -265,38 +297,9 @@ def standardize_data(input_data):
     sigma = np.std(input_data)
     standardized_data = (input_data-mean)/sigma
     return standardized_data, mean, sigma
-
-def standardize_data_tf(input_data):
-    """
-    Standardizates the data in input_data, so it has a mean of zero and a
-    unit-variance with TensorFlow.
-    
-    Parameters:
-    input_data (Numpy Array): 3D Numpy Array of shape columns x rows x slices 
-    (XYZ) to standardize.
-    
-    Returns:
-    standardized_data_data (Numpy Array): Standardizated data.
-    """
-    if np.size(input_data.shape) != 3:
-        print('input_data must be of shape 3 but has shape ', np.size(input_data.shape))
-        return
-    
-    # Transpose the input-data from XYZ to YXZ for use with TensorFlow
-    input_data = np.transpose(input_data, axes=(1,0,2))
-    
-    # Standadize the data with TensorFlow
-    sess = tf.Session()
-    with sess.as_default():
-        std_data = tf.image.per_image_standardization(input_data).eval()
-    
-    # Transpose back to XYZ
-    std_data = np.transpose(std_data, axes=(1,0,2))
-
-    return std_data
     
 
-def unstandardizate_data(input_data, mean, sigma):
+def unstandardizate_volume(input_data, mean, sigma):
     """
     Reverts the standardization of the data in input_data.
     
@@ -343,70 +346,7 @@ def unscale_data(data, factor):
     #return unscaled_data.astype(np.float32)
     return (data/factor).astype(np.float32)
 
-def gen_patches(data, patch_slices, patch_rows, patch_cols, stride_slices, 
-                stride_rows, stride_cols, input_dim_order='XYZ', padding='VALID'):
-    """
-    Generates patches of the Numpy Array data of the size patch_slices x 
-    patch_rows x patch_cols with stride_slices x stride stride_rows x
-    stride_cols.
-    
-    Parameters:
-    data (Numpy Array): Numpy Arrayout of which the patches are generated.
-    patch_slices (int): Number of slices (z-size) one patch should have.
-    patch_rows (int): Number of rows (y-size) one patch should have.
-    patch_cols (int): Number of columns (x-size) one patch should have.
-    stride_slices (int): Stride in slice direction (z-direction).
-    stride_rows (int): Stride in row direction (y-direction).
-    stride_cols (int): Stride in column direction (x-direction).
-    input_dim_order (String): String of the dimension order of data. Can be 
-    'XYZ' oder 'ZYX'.
-    padding (String): String which padding should be used. Can be 'VALID' 
-    (no padding) or 'SAME' (with zero-padding).
-    
-    Returns:
-    patches (Numpy Array): Generated Patches of size slice_indice x row_indice
-    x column_indice x image_slice x image_row x image_column
-    """
-    
-    # Reorder the dimensions to ZYX
-    if input_dim_order == 'XYZ':
-        data = np.transpose(data, axes=(2,1,0))
-    
-    # Check if the data has channels
-    if np.size(data.shape) != 3:
-        print('WARNING! Function is only meant to be used for data with one channel')
-        return
-    
-    # Expand dimension for depth (number of channels)
-    data = data[:,:,:,np.newaxis]
-    
-    # Expand the dimension for batches
-    data = data[np.newaxis,:,:,:,:]
-    
-    # Extract  patches of size patch_slices x patch_rows x patch_cols
-    with tf.Session() as sess:
-        t = tf.extract_volume_patches(data, ksizes=[1, patch_slices, patch_rows, patch_cols, 1], 
-                                      strides=[1, stride_slices, stride_rows, stride_cols, 1], 
-                                      padding=padding).eval(session=sess)
-    
-        # Reshape the patches to 3D
-        # t.shape[1] -> number of extracted patches in z-direction
-        # t.shape[2] -> number of extracted patches in y-direction
-        # t.shape[3] -> number of extracted patches in x-direction
-        t = tf.reshape(t, [1, t.shape[1], t.shape[2], t.shape[3], 
-                           patch_slices, patch_rows, patch_cols]).eval(session=sess)
-        #sess.close()
-    
-    # Remove the batch dimension
-    patches = t[0,:,:,:,:]
-    
-    # Remove the channel dimension
-    #if has_channels == False:
-        #patches = t[:,:,:,0]
-    
-    return patches
-
-def gen_patches2(session, data, patch_slices, patch_rows, patch_cols, stride_slices, 
+def gen_patches(session, data, patch_slices, patch_rows, patch_cols, stride_slices, 
                 stride_rows, stride_cols, input_dim_order='XYZ', padding='VALID'):
     """
     Generates patches of the Numpy Array data of the size patch_slices x 
@@ -545,101 +485,3 @@ def get_inner_slice(data, border):
     d2_end = data.shape[2]-border[2]
     inner_slice = data[d0_start:d0_end, d1_start:d1_end, d2_start:d2_end]
     return inner_slice
-
-###############################################################################
-# For testing
-###############################################################################
-    
-def get_weight_matrix(patch_size, strides):
-    """
-    Returns a weight matrix of patch_size with factors for superposition of
-    overlapping patches.
-    
-    Parameters:
-    patch_size (Tuple): Patch size in dimension order ZYX
-    strides (Tuple): Strides in direction ZYX
-    
-    Returns:
-    weight_matrix (Numpy Array): 3D Matrix of weights.
-    """
-    patch_size_z = patch_size[0]
-    patch_size_y = patch_size[1]
-    patch_size_x = patch_size[2]
-    
-    stride_z = strides[0]
-    stride_y = strides[1]
-    stride_x = strides[2]
-    
-    weight_matrix = np.ones(shape=(patch_size_z, patch_size_y, patch_size_x))
-    
-    weight_matrix[0:stride_z, stride_y:, 0:stride_x] *= 1/2
-    weight_matrix[0:stride_z, 0:stride_y, stride_x:] *= 1/2
-    weight_matrix[stride_z:, 0:stride_y:, 0:stride_x] *= 1/2
-    weight_matrix[0:stride_z, stride_y:, stride_x:] *= 1/4
-    weight_matrix[stride_z:, 0:stride_y, stride_x:] *= 1/4
-    weight_matrix[stride_z:, stride_y:, 0:stride_x] *= 1/4
-    weight_matrix[stride_z:, stride_y:, stride_x:] *= 1/8
-    
-    return weight_matrix
-
-def restore_volume_from_overlapped_patches(patches, shape_orig_data, strides):
-    stride_slices = strides[0]
-    stride_rows = strides[1]
-    stride_cols = strides[2]
-    
-    data_slices = shape_orig_data[0]
-    data_rows = shape_orig_data[1]
-    data_cols = shape_orig_data[2]
-    
-    patch_slices = patches.shape[3]
-    patch_rows = patches.shape[4]
-    patch_cols = patches.shape[5]
-    
-    # Calculate the size of the reconstructed volume (not so clear how TensorFlow
-    # calculates the Padding) -> savety distance. If safety distance is not enough
-    # ValueError :operands could not be broadcast together is thrown 
-    safety_distance = 4
-    if patch_slices / stride_slices == 1:
-        out_slices = data_slices
-    else:
-        print('patch_slices: ', patch_slices)
-        print('patches.shape[0]: ', patches.shape[0])
-        print('stride_slices: ', stride_slices)
-        out_slices = np.int(np.ceil(patch_slices/2)+patches.shape[0]*stride_slices) + safety_distance
-        
-    if patch_rows / stride_rows == 1:
-        out_rows = data_rows
-    else:
-        out_rows = np.int(np.ceil(patch_rows/2)+patches.shape[1]*stride_rows) + safety_distance
-    
-    if patch_cols / stride_cols == 1:
-        out_cols = data_cols
-    else:
-        out_cols = np.int(np.ceil(patch_cols/2)+patches.shape[2]*stride_cols) + safety_distance
-    
-    # Allocate Volume for reconstruction
-    reconstructed = np.zeros(shape=(out_slices+50, out_rows+50, out_cols+50))
-    print(reconstructed.shape)
-    
-    for slice_z in range(patch_slices):
-        for row in range(patch_rows):
-            for col in range(patch_cols):
-                # Extract patch
-                patch = patches[slice_z, row, col]
-                # Calculate the position to place this patch in the reconstructed volume
-                start_slice = slice_z*stride_slices
-                end_slice = start_slice + patch_slices
-                start_rows = row*stride_rows
-                end_rows = start_rows + patch_rows
-                start_cols = col*stride_cols
-                end_cols = start_cols + patch_cols
-                #rec = reconstructed[start_slice:end_slice, start_rows:end_rows, start_cols:end_cols]
-                reconstructed[start_slice:end_slice, start_rows:end_rows, start_cols:end_cols] += patch 
-                reconstructed[start_slice:end_slice, start_rows:end_rows, start_cols:end_cols] /2
-    return reconstructed
-
-
-
-
-    
-        

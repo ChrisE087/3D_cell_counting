@@ -51,13 +51,9 @@ def split_cultivation_period(path_to_dataset):
         
     return data_list_24h, data_list_48h, data_list_72h
 
-def load_data(path_to_dataset, data_list, input_shape, standardize_input_data=False, 
+def load_data(path_to_dataset, data_list, input_shape, 
               standardization_mode=None, border=None):
-    # Get the shape of the data
-#    filepath = os.path.join(path_to_dataset, data_list[0])
-#    data, header = nrrd.read(filepath)
-#    shape = data.shape
-    
+
     # Make the data matrix
     X_data = np.zeros(shape=(np.size(data_list), input_shape[0], input_shape[1], 
                              input_shape[2]), dtype='float32')
@@ -68,20 +64,22 @@ def load_data(path_to_dataset, data_list, input_shape, standardize_input_data=Fa
         y_data = np.zeros(shape=(np.size(data_list), input_shape[0]-2*border[0], 
                                  input_shape[1]-2*border[1], input_shape[2]-2*border[2]), dtype='float32')
     
+    # Load the data into the data matrix
     for i in range(np.size(data_list)):
         filepath = os.path.join(path_to_dataset, data_list[i])
         data, header = nrrd.read(filepath)
         X_data[i,] = data[0,]
-        
-        if standardize_input_data == True and standardization_mode == 'volume_wise':
-            X_data[i,], mean, sigma = impro.standardize_data(X_data[i,])
         if border == None:
             y_data[i,] = data[1,]
         else:
             y_data[i,] = impro.get_inner_slice(data[1,], border)
-    if standardize_input_data == True and standardization_mode == 'slice_wise':
-        X_data = impro.standardize_dataset(input_dataset = X_data, mode='slice_wise')
         
+    # Standardize the input-data
+    if standardization_mode == 'per_slice' or \
+    standardization_mode == 'per_sample' or \
+    standardization_mode == 'per_batch':
+        X_data = impro.standardize_data(data=X_data, mode=standardization_mode)
+
     return X_data, y_data
             
             
