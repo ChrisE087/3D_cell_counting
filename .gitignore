@@ -4,8 +4,10 @@
 00-playground/test_data
 00-playground_NN/export
 00-playground_NN/logs
+00-playground_NN/logs/BACKUP
 00-playground_NN/mini_dataset
 00-playground_NN/model_export
+00-playground_NN/model_export/BACKUP
 00-playground_NN/test_data
 01-data_preparation/ALT
 02-dataset_generation/ALT
@@ -13,12 +15,15 @@
 tools/ALT
 02-dataset_generation/dataset
 04-conv_net/ALT
-04-conv_net/log
+04-conv_net/logs
+04-conv_net/logs/BACKUP
 04-conv_net/SAVED
 04-conv_net/model_export
+04-conv_net/model_export/BACKUP
 04-conv_net/export
 
 # Ignore files
+*.zip
 *.nrrd
 *.tif
 *.tiff

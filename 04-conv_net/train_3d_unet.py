@@ -48,11 +48,11 @@ def mse_inner_slice(y_true, y_pred):
 ###############################################################################
 
 # Dataset Parameters
-path_to_dataset = os.path.join('..', '..', '..', 'Daten', 'dataset_mini')
+path_to_dataset = os.path.join('..', '..', '..', 'Daten', 'dataset')
 train_split = 0.8
 val_split = 0.1
 test_split = 0.1
-data_shape = (64, 64, 64)
+data_shape = (32, 32, 32)
 channels = 1
 
 # Model Parameters
@@ -63,18 +63,17 @@ output_layer_activation = None
 padding = 'same'
 
 # Data Generator parameters
-shuffle = True
-normalize_input_data = False
-standardize_input_data = True
-standardization_mode = 'volume_wise'
-border = (16,16,16)
-linear_output_scaling_factor = 4096000
+train_shuffle = True
+val_shuffle = False
+standardization_mode = 'per_sample' # 'per_slice', 'per_sample' or 'per_batch'
+border = None # None or border in each dimension around the inner slice which should be extracted
+linear_output_scaling_factor = 409600000000
 
 # Training parameters
 #learning_rate = 0.00001
-learning_rate = 0.0001
-epochs = 128
-batch_size = 8
+learning_rate = 0.001
+epochs = 64
+batch_size = 32
 optimizer = keras.optimizers.adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, 
                                   epsilon=None, decay=0.0, amsgrad=False)
 evaluate = False
@@ -100,9 +99,9 @@ checkpoint = ModelCheckpoint(filepath=os.path.join(model_export_path, 'best_weig
 early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
 
 logdir = os.path.join('logs', timestamp)
-tensor_board_cb = TensorBoard(log_dir=logdir, histogram_freq=0, 
+tensor_board = TensorBoard(log_dir=logdir, histogram_freq=0, 
                               write_graph=True, write_images=True)
-callbacks = [tensor_board_cb]
+callbacks = [tensor_board, checkpoint]
 
 ###############################################################################
 # Prepare the training data
@@ -116,11 +115,11 @@ data_list_24h, data_list_48h, data_list_72h = datatools.split_cultivation_period
 
 # Split the list of training files into train validation and test data
 train_24h, val_24h, test_24h = datatools.train_val_test_split(data_list_24h, train_split, 
-                                                            val_split, test_split, shuffle=shuffle)
+                                                            val_split, test_split, shuffle=False)
 train_48h, val_48h, test_48h = datatools.train_val_test_split(data_list_48h, train_split, 
-                                                            val_split, test_split, shuffle=shuffle)
+                                                            val_split, test_split, shuffle=False)
 train_72h, val_72h, test_72h = datatools.train_val_test_split(data_list_72h, train_split, 
-                                                            val_split, test_split, shuffle=shuffle)
+                                                            val_split, test_split, shuffle=False)
 
 # Concatenate the list of training files
 train_list = train_24h + train_48h + train_72h
@@ -136,7 +135,6 @@ test_list = test_list.tolist()
 ###############################################################################
 
 cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor, 
-          standardize_input_data=standardize_input_data,
           standardization_mode=standardization_mode)
 cnn.define_model(input_shape=input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
                   pool_size=(2, 2, 2), hidden_layer_activation=hidden_layer_activation, 
@@ -150,17 +148,13 @@ cnn.compile_model(loss=loss, optimizer=optimizer, metrics=metrics)
 
 train_generator = datagen.DataGenerator(path_to_dataset=path_to_dataset, 
                                         filenames_list=train_list, dim=data_shape, 
-                                        channels=channels, batch_size=batch_size, shuffle=shuffle, 
-                                        normalize_input_data=normalize_input_data, 
-                                        standardize_input_data=standardize_input_data,
+                                        channels=channels, batch_size=batch_size, shuffle=train_shuffle, 
                                         standardization_mode=standardization_mode,
                                         linear_output_scaling_factor=linear_output_scaling_factor, 
                                         border=border)
 val_generator = datagen.DataGenerator(path_to_dataset=path_to_dataset, 
                                       filenames_list=val_list, dim=data_shape, 
-                                      channels=channels, batch_size=batch_size, shuffle=shuffle, 
-                                      normalize_input_data=normalize_input_data, 
-                                      standardize_input_data=standardize_input_data,
+                                      channels=channels, batch_size=batch_size, shuffle=val_shuffle, 
                                       standardization_mode=standardization_mode,
                                       linear_output_scaling_factor=linear_output_scaling_factor, 
                                       border=border)
@@ -174,7 +168,6 @@ history = cnn.fit_generator(epochs=epochs, train_generator=train_generator, val_
 # Load unstandardized test data
 X_test_data, y_test_data = datatools.load_data(path_to_dataset=path_to_dataset, 
                                                data_list=test_list, input_shape=data_shape,
-                                               standardize_input_data=standardize_input_data,
                                                standardization_mode=None,
                                                border=border)
 if evaluate == True:
@@ -208,14 +201,14 @@ X_test = X_test_data[rand_int,]
 y_test = y_test_data[rand_int,]
 
 y_pred = cnn.predict_sample(X_test)
-
+plt_slice = 16
 if border == None:
-    plt.imshow(X_test[:,:,16])
+    plt.imshow(X_test[plt_slice,:,:])
 else:
     X_inner = impro.get_inner_slice(X_test, border)
-    plt.imshow(X_inner[:,:,16])
-plt.imshow(y_test[:,:,16])
-plt.imshow(y_pred[:,:,16])
+    plt.imshow(X_inner[plt_slice,:,:])
+plt.imshow(y_test[plt_slice,:,:])
+plt.imshow(y_pred[plt_slice,:,:])
 
 print('Number of cells (ground truth): ', np.sum(y_test))
 print('Number of cells (predicted): ', np.sum(y_pred))

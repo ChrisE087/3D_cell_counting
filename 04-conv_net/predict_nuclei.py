@@ -22,19 +22,22 @@ data = data.astype(np.float32)
 plt.imshow(data[:,:,55])
 
 # Load the CNN
-linear_output_scaling_factor = 2048000
-cnn = CNN(linear_output_scaling_factor)
-import_path = os.path.join(os.getcwd(), 'model_export', '2019-06-25_10-15-30')
+linear_output_scaling_factor = 409600000000
+standardization_mode = 'per_sample'
+cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor, 
+          standardization_mode=standardization_mode)
+import_path = os.path.join(os.getcwd(), 'model_export', '2019-07-03_09-59-27')
 cnn.load_model_json(import_path, 'model_json', 'model_weights')
 
 # Generate image patches
 size_z = patch_slices = 32
 size_y = patch_rows = 32
 size_x = patch_cols = 32
-stride_z = stride_slices = 32
-stride_y = stride_rows = 32
-stride_x = stride_cols = 32
-patches = impro.gen_patches(data=data, patch_slices=size_z, patch_rows=size_y, 
+stride_z = stride_slices = 16
+stride_y = stride_rows = 16
+stride_x = stride_cols = 16
+session = tf.Session()
+patches = impro.gen_patches(session=session, data=data, patch_slices=size_z, patch_rows=size_y, 
                             patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y, 
                             stride_cols=stride_x, input_dim_order='XYZ', padding='VALID')
 
@@ -51,9 +54,10 @@ for zslice in range(patches.shape[0]):
             predictions[zslice, row, col, :] = prediction
 
 ## Restore the volumes from the patches
-nuclei = impro.restore_volume(patches=patches, output_dim_order='XYZ')         
-density_map = impro.restore_volume(patches=predictions, output_dim_order='XYZ')
-
+nuclei = impro.restore_volume(patches=patches, border=(8,8,8), output_dim_order='XYZ')
+plt.imshow(nuclei[:,:,150])         
+density_map = impro.restore_volume(patches=predictions, border=(8,8,8), output_dim_order='XYZ')
+plt.imshow(density_map[:,:,150])
 #
 ## Plot patch
 #pz = 0
@@ -71,7 +75,6 @@ density_map = impro.restore_volume(patches=predictions, output_dim_order='XYZ')
 #
 ## Print the sum of the whole density-map
 print(np.sum(density_map))
-plt.imshow(density_map[:,:,150])
             
 
 # Save the results

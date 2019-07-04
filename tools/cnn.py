@@ -54,825 +54,184 @@ class CNN():
 # First Net (works good)
 ###############################################################################
     
+    def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
+                  pool_size=(2, 2, 2), hidden_layer_activation='relu', 
+                  output_layer_activation=None, padding='same'):
+        
+        inputs = Input((input_shape))
+        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(inputs)
+        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(conv1)
+        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
+                             padding=padding)(conv1)
+    
+        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(pool1)
+        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(conv2)
+        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
+                             padding=padding)(conv2)
+    
+        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(pool2)
+        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(conv3)
+        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
+                             padding=padding)(conv3)
+    
+        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(pool3)
+        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(conv4)
+        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
+                             padding=padding)(conv4)
+    
+        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(pool4)
+        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(conv5)
+    
+        up_conv5 = UpSampling3D(size=pool_size)(conv5)
+        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
+        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
+        up6 = concatenate([up_conv5, crop_conv4], axis=-1)
+        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(up6)
+        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(conv6)
+    
+        up_conv6 = UpSampling3D(size=pool_size)(conv6)
+        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
+        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
+        up7 = concatenate([up_conv6, crop_conv3], axis=-1)
+        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(up7)
+        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(conv7)
+    
+        up_conv7 = UpSampling3D(size=pool_size)(conv7)
+        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
+        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
+        up8 = concatenate([up_conv7, crop_conv2], axis=-1)
+        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(up8)
+        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(conv8)
+    
+        up_conv8 = UpSampling3D(size=pool_size)(conv8)
+        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
+        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
+        up9 = concatenate([up_conv8, crop_conv1], axis=-1)
+        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(up9)
+        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
+                       activation=hidden_layer_activation, padding=padding)(conv9)
+    
+        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
+                        activation=output_layer_activation)(conv9)
+    
+        self.model = Model(inputs=[inputs], outputs=[conv10])
+            
+        
 #    def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
 #                  pool_size=(2, 2, 2), hidden_layer_activation='relu', 
 #                  output_layer_activation=None, padding='same'):
-#        
+#        norm_axis = 1
 #        inputs = Input((input_shape))
 #        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
 #                       activation=hidden_layer_activation, padding=padding)(inputs)
+#        norm1 = BatchNormalization(axis=norm_axis)(conv1)
 #        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv1)
-#        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv1)
-#    
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool1)
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv2)
-#        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv2)
-#    
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool2)
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv3)
-#        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv3)
-#    
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool3)
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv4)
-#        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv4)
-#    
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool4)
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv5)
-#    
-#        up_conv5 = UpSampling3D(size=pool_size)(conv5)
-#        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
-#        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
-#        up6 = concatenate([up_conv5, crop_conv4], axis=-1)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up6)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv6)
-#    
-#        up_conv6 = UpSampling3D(size=pool_size)(conv6)
-#        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
-#        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
-#        up7 = concatenate([up_conv6, crop_conv3], axis=-1)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up7)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv7)
-#    
-#        up_conv7 = UpSampling3D(size=pool_size)(conv7)
-#        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
-#        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
-#        up8 = concatenate([up_conv7, crop_conv2], axis=-1)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up8)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv8)
-#    
-#        up_conv8 = UpSampling3D(size=pool_size)(conv8)
-#        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
-#        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
-#        up9 = concatenate([up_conv8, crop_conv1], axis=-1)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up9)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv9)
-#    
-#        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
-#                        activation=output_layer_activation)(conv9)
-#    
-#        self.model = Model(inputs=[inputs], outputs=[conv10])
-            
-        
-###############################################################################
-# Second Net with Batch Normalization Layers between Conv and Activation
-###############################################################################
-
-#    def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
-#                  pool_size=(2, 2, 2), hidden_layer_activation='relu', 
-#                  output_layer_activation=None, padding='same'):
-#        if hidden_layer_activation == 'relu':
-#            activation = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)
-#        if hidden_layer_activation == 'leaky_relu':
-#            activation = LeakyReLU(alpha=0.3)
-#        
-#        inputs = Input((input_shape))
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(inputs)
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv1)
-#        norm1 = BatchNormalization(axis=-2)(conv1)
-#        act1 = activation(norm1)
-#        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(act1)
-#    
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool1)
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv2)
-#        norm2 = BatchNormalization(axis=-2)(conv2)
-#        act2 = activation(norm2)
-#        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(act2)
-#    
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool2)
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv3)
-#        norm3 = BatchNormalization(axis=-2)(conv3)
-#        act3 = activation(norm3)
-#        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(act3)
-#    
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool3)
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv4)
-#        norm4 = BatchNormalization(axis=-2)(conv4)
-#        act4 = activation(norm4)
-#        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(act4)
-#    
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool4)
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv5)
-#        norm5 = BatchNormalization(axis=-2)(conv5)
-#        act5 = activation(norm5)
-#    
-#        up_conv5 = UpSampling3D(size=pool_size)(act5)
-#        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
-#        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
-#        up6 = concatenate([up_conv5, crop_conv4], axis=-1)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up6)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv6)
-#        norm6 = BatchNormalization(axis=-2)(conv6)
-#        act6 = activation(norm6)
-#        
-#    
-#        up_conv6 = UpSampling3D(size=pool_size)(act6)
-#        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
-#        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
-#        up7 = concatenate([up_conv6, crop_conv3], axis=-1)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up7)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv7)
-#        norm7 = BatchNormalization(axis=-2)(conv7)
-#        act7 = activation(norm7)
-#    
-#        up_conv7 = UpSampling3D(size=pool_size)(act7)
-#        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
-#        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
-#        up8 = concatenate([up_conv7, crop_conv2], axis=-1)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up8)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv8)
-#        norm8 = BatchNormalization(axis=-2)(conv8)
-#        act8 = activation(norm8)
-#    
-#        up_conv8 = UpSampling3D(size=pool_size)(act8)
-#        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
-#        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
-#        up9 = concatenate([up_conv8, crop_conv1], axis=-1)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up9)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv9)
-#        norm9 = BatchNormalization(axis=-2)(conv9)
-#        act9 = activation(norm9)
-#    
-#        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
-#                        activation=output_layer_activation)(act9)
-#    
-#        self.model = Model(inputs=[inputs], outputs=[conv10])
-
-
-###############################################################################
-# Third Net with Batch Normalization Layers after Activation
-###############################################################################
-      
-#    def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
-#                  pool_size=(2, 2, 2), hidden_layer_activation='relu', 
-#                  output_layer_activation=None, padding='same'):
-#        if hidden_layer_activation == 'relu':
-#            activation = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)
-#        if hidden_layer_activation == 'leaky_relu':
-#            activation = LeakyReLU(alpha=0.3)
-#        
-#        inputs = Input((input_shape))
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(inputs)
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv1)
-#        act1 = activation(conv1)
-#        norm1 = BatchNormalization(axis=-2)(act1)
+#                       activation=hidden_layer_activation, padding=padding)(norm1)
+#        norm1 = BatchNormalization(axis=norm_axis)(conv1)
 #        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
 #                             padding=padding)(norm1)
 #    
 #        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool1)
+#                       activation=hidden_layer_activation, padding=padding)(pool1)
+#        norm2 = BatchNormalization(axis=norm_axis)(conv2)
 #        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv2)
-#        act2 = activation(conv2)
-#        norm2 = BatchNormalization(axis=-2)(act2)
+#                       activation=hidden_layer_activation, padding=padding)(norm2)
+#        norm2 = BatchNormalization(axis=norm_axis)(conv2)
 #        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
 #                             padding=padding)(norm2)
 #    
 #        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool2)
+#                       activation=hidden_layer_activation, padding=padding)(pool2)
+#        norm3 = BatchNormalization(axis=norm_axis)(conv3)
 #        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv3)
-#        act3 = activation(conv3)
-#        norm3 = BatchNormalization(axis=-2)(act3)
+#                       activation=hidden_layer_activation, padding=padding)(norm3)
+#        norm3 = BatchNormalization(axis=norm_axis)(conv3)
 #        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
 #                             padding=padding)(norm3)
 #    
 #        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool3)
+#                       activation=hidden_layer_activation, padding=padding)(pool3)
+#        norm4 = BatchNormalization(axis=norm_axis)(conv4)
 #        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv4)
-#        act4 = activation(conv4)
-#        norm4 = BatchNormalization(axis=-2)(act4)
+#                       activation=hidden_layer_activation, padding=padding)(norm4)
+#        norm4 = BatchNormalization(axis=norm_axis)(conv4)
 #        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
 #                             padding=padding)(norm4)
 #    
 #        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool4)
+#                       activation=hidden_layer_activation, padding=padding)(pool4)
+#        norm5 = BatchNormalization(axis=norm_axis)(conv5)
 #        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv5)
-#        act5 = activation(conv5)
-#        norm5 = BatchNormalization(axis=-2)(act5)
+#                       activation=hidden_layer_activation, padding=padding)(norm5)
+#        norm5 = BatchNormalization(axis=norm_axis)(conv5)
 #    
 #        up_conv5 = UpSampling3D(size=pool_size)(norm5)
-#        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
-#        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
+#        ch, cw, cd = self.get_crop_shape(up_conv5, norm4)
+#        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(norm4)
 #        up6 = concatenate([up_conv5, crop_conv4], axis=-1)
 #        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up6)
+#                       activation=hidden_layer_activation, padding=padding)(up6)
+#        norm6 = BatchNormalization(axis=norm_axis)(conv6)
 #        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv6)
-#        act6 = activation(conv6)
-#        norm6 = BatchNormalization(axis=-2)(act6)
-#        
+#                       activation=hidden_layer_activation, padding=padding)(norm6)
+#        norm6 = BatchNormalization(axis=norm_axis)(conv6)
+#    
 #        up_conv6 = UpSampling3D(size=pool_size)(norm6)
-#        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
-#        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
+#        ch, cw, cd = self.get_crop_shape(up_conv6, norm3)
+#        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(norm3)
 #        up7 = concatenate([up_conv6, crop_conv3], axis=-1)
 #        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up7)
+#                       activation=hidden_layer_activation, padding=padding)(up7)
+#        norm7 = BatchNormalization(axis=norm_axis)(conv7)
 #        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv7)
-#        act7 = activation(conv7)
-#        norm7 = BatchNormalization(axis=-2)(act7)
+#                       activation=hidden_layer_activation, padding=padding)(norm7)
+#        norm7 = BatchNormalization(axis=norm_axis)(conv7)
 #    
 #        up_conv7 = UpSampling3D(size=pool_size)(norm7)
-#        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
-#        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
+#        ch, cw, cd = self.get_crop_shape(up_conv7, norm2)
+#        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(norm2)
 #        up8 = concatenate([up_conv7, crop_conv2], axis=-1)
 #        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up8)
+#                       activation=hidden_layer_activation, padding=padding)(up8)
+#        norm8 = BatchNormalization(axis=-2)(conv8)
 #        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv8)
-#        act8 = activation(conv8)
-#        norm8 = BatchNormalization(axis=-2)(act8)
+#                       activation=hidden_layer_activation, padding=padding)(norm8)
+#        norm8 = BatchNormalization(axis=norm_axis)(conv8)
 #    
 #        up_conv8 = UpSampling3D(size=pool_size)(norm8)
-#        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
-#        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
+#        ch, cw, cd = self.get_crop_shape(up_conv8, norm1)
+#        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(norm1)
 #        up9 = concatenate([up_conv8, crop_conv1], axis=-1)
 #        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up9)
+#                       activation=hidden_layer_activation, padding=padding)(up9)
+#        norm9 = BatchNormalization(axis=norm_axis)(conv9)
 #        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(conv9)
-#        act9 = activation(conv9)
-#        norm9 = BatchNormalization(axis=-2)(act9)
+#                       activation=hidden_layer_activation, padding=padding)(norm9)
+#        norm9 = BatchNormalization(axis=norm_axis)(conv9)
 #    
 #        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
 #                        activation=output_layer_activation)(norm9)
 #    
 #        self.model = Model(inputs=[inputs], outputs=[conv10])
-        
-###############################################################################
-# Fourth Net with additional Activation- and Normalization layers
-###############################################################################
-      
-    def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
-                  pool_size=(2, 2, 2), hidden_layer_activation='relu', 
-                  output_layer_activation=None, padding='same'):
-        if hidden_layer_activation == 'relu':
-            activation = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)
-        if hidden_layer_activation == 'leaky_relu':
-            activation = LeakyReLU(alpha=0.2)
-        
-        inputs = Input((input_shape))
-        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(inputs)
-        act1 = activation(conv1)
-        norm1 = BatchNormalization(axis=-2)(act1)
-        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(norm1)
-        act1 = activation(conv1)
-        norm1 = BatchNormalization(axis=-2)(act1)
-        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
-                             padding=padding)(norm1)
-    
-        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(pool1)
-        act2 = activation(conv2)
-        norm2 = BatchNormalization(axis=-2)(act2)
-        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(norm2)
-        act2 = activation(conv2)
-        norm2 = BatchNormalization(axis=-2)(act2)
-        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
-                             padding=padding)(norm2)
-
-        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(pool2)
-        act3 = activation(conv3)
-        norm3 = BatchNormalization(axis=-2)(act3)
-        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(norm3)
-        act3 = activation(conv3)
-        norm3 = BatchNormalization(axis=-2)(act3)
-        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
-                             padding=padding)(norm3)
-    
-        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(pool3)
-        act4 = activation(conv4)
-        norm4 = BatchNormalization(axis=-2)(act4)
-        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(norm4)
-        act4 = activation(conv4)
-        norm4 = BatchNormalization(axis=-2)(act4)
-        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
-                             padding=padding)(norm4)
-    
-        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(pool4)
-        act5 = activation(conv5)
-        norm5 = BatchNormalization(axis=-2)(act5)
-        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(norm5)
-        act5 = activation(conv5)
-        norm5 = BatchNormalization(axis=-2)(act5)
-    
-        up_conv5 = UpSampling3D(size=pool_size)(norm5)
-        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
-        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
-        up6 = concatenate([up_conv5, crop_conv4], axis=-1)
-        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(up6)
-        act6 = activation(conv6)
-        norm6 = BatchNormalization(axis=-2)(act6)
-        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(norm6)
-        act6 = activation(conv6)
-        norm6 = BatchNormalization(axis=-2)(act6)
-        
-        up_conv6 = UpSampling3D(size=pool_size)(norm6)
-        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
-        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
-        up7 = concatenate([up_conv6, crop_conv3], axis=-1)
-        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(up7)
-        act7 = activation(conv7)
-        norm7 = BatchNormalization(axis=-2)(act7)
-        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(norm7)
-        act7 = activation(conv7)
-        norm7 = BatchNormalization(axis=-2)(act7)
-    
-        up_conv7 = UpSampling3D(size=pool_size)(norm7)
-        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
-        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
-        up8 = concatenate([up_conv7, crop_conv2], axis=-1)
-        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(up8)
-        act8 = activation(conv8)
-        norm8 = BatchNormalization(axis=-2)(act8)
-        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(norm8)
-        act8 = activation(conv8)
-        norm8 = BatchNormalization(axis=-2)(act8)
-    
-        up_conv8 = UpSampling3D(size=pool_size)(norm8)
-        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
-        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
-        up9 = concatenate([up_conv8, crop_conv1], axis=-1)
-        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(up9)
-        act9 = activation(conv9)
-        norm9 = BatchNormalization(axis=-2)(act9)
-        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-                       activation=None, padding=padding)(norm9)
-        act9 = activation(conv9)
-        norm9 = BatchNormalization(axis=-2)(act9)
-    
-        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
-                        activation=output_layer_activation)(norm9)
-    
-        self.model = Model(inputs=[inputs], outputs=[conv10])
             
-###############################################################################
-# Fifth Net (same as Net four but with removed Normalization Layers  if no 
-# Pooling is following)
-###############################################################################
-      
-#    def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
-#                  pool_size=(2, 2, 2), hidden_layer_activation='relu', 
-#                  output_layer_activation=None, padding='same'):
-#        if hidden_layer_activation == 'relu':
-#            activation = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)
-#        if hidden_layer_activation == 'leaky_relu':
-#            activation = LeakyReLU(alpha=0.2)
-#        
-#        inputs = Input((input_shape))
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(inputs)
-#        act1 = activation(conv1)
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(act1)
-#        act1 = activation(conv1)
-#        norm1 = BatchNormalization(axis=-2)(act1)
-#        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(norm1)
-#    
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool1)
-#        act2 = activation(conv2)
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(act2)
-#        act2 = activation(conv2)
-#        norm2 = BatchNormalization(axis=-2)(act2)
-#        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(norm2)
-#
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool2)
-#        act3 = activation(conv3)
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(act3)
-#        act3 = activation(conv3)
-#        norm3 = BatchNormalization(axis=-2)(act3)
-#        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(norm3)
-#    
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool3)
-#        act4 = activation(conv4)
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(act4)
-#        act4 = activation(conv4)
-#        norm4 = BatchNormalization(axis=-2)(act4)
-#        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(norm4)
-#    
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool4)
-#        act5 = activation(conv5)
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(act5)
-#        act5 = activation(conv5)
-#        norm5 = BatchNormalization(axis=-2)(act5)
-#    
-#        up_conv5 = UpSampling3D(size=pool_size)(norm5)
-#        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
-#        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
-#        up6 = concatenate([up_conv5, crop_conv4], axis=-1)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up6)
-#        act6 = activation(conv6)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(act6)
-#        act6 = activation(conv6)
-#        norm6 = BatchNormalization(axis=-2)(act6)
-#        
-#        up_conv6 = UpSampling3D(size=pool_size)(norm6)
-#        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
-#        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
-#        up7 = concatenate([up_conv6, crop_conv3], axis=-1)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up7)
-#        act7 = activation(conv7)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(act7)
-#        act7 = activation(conv7)
-#        norm7 = BatchNormalization(axis=-2)(act7)
-#    
-#        up_conv7 = UpSampling3D(size=pool_size)(norm7)
-#        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
-#        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
-#        up8 = concatenate([up_conv7, crop_conv2], axis=-1)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up8)
-#        act8 = activation(conv8)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(act8)
-#        act8 = activation(conv8)
-#        norm8 = BatchNormalization(axis=-2)(act8)
-#    
-#        up_conv8 = UpSampling3D(size=pool_size)(norm8)
-#        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
-#        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
-#        up9 = concatenate([up_conv8, crop_conv1], axis=-1)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up9)
-#        act9 = activation(conv9)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(act9)
-#        act9 = activation(conv9)
-#        #norm9 = BatchNormalization(axis=-2)(act9)
-#    
-#        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
-#                        activation=output_layer_activation)(act9)
-#    
-#        self.model = Model(inputs=[inputs], outputs=[conv10])
         
-###############################################################################
-# Sixth Net like fourth net with input_shape/2 output
-###############################################################################
-      
-#    def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
-#                  pool_size=(2, 2, 2), hidden_layer_activation='relu', 
-#                  output_layer_activation=None, padding='same'):
-#        if hidden_layer_activation == 'relu':
-#            activation = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)
-#        if hidden_layer_activation == 'leaky_relu':
-#            activation = LeakyReLU(alpha=0.2)
-#        
-#        inputs = Input((input_shape))
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(inputs)
-#        act1 = activation(conv1)
-#        norm1 = BatchNormalization(axis=-2)(act1)
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(norm1)
-#        act1 = activation(conv1)
-#        norm1 = BatchNormalization(axis=-2)(act1)
-#        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(norm1)
-#    
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool1)
-#        act2 = activation(conv2)
-#        norm2 = BatchNormalization(axis=-2)(act2)
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(norm2)
-#        act2 = activation(conv2)
-#        norm2 = BatchNormalization(axis=-2)(act2)
-#        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(norm2)
-#
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool2)
-#        act3 = activation(conv3)
-#        norm3 = BatchNormalization(axis=-2)(act3)
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(norm3)
-#        act3 = activation(conv3)
-#        norm3 = BatchNormalization(axis=-2)(act3)
-#        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(norm3)
-#    
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool3)
-#        act4 = activation(conv4)
-#        norm4 = BatchNormalization(axis=-2)(act4)
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(norm4)
-#        act4 = activation(conv4)
-#        norm4 = BatchNormalization(axis=-2)(act4)
-#        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(norm4)
-#    
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(pool4)
-#        act5 = activation(conv5)
-#        norm5 = BatchNormalization(axis=-2)(act5)
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(norm5)
-#        act5 = activation(conv5)
-#        norm5 = BatchNormalization(axis=-2)(act5)
-#    
-#        up_conv5 = UpSampling3D(size=pool_size)(norm5)
-#        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
-#        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
-#        up6 = concatenate([up_conv5, crop_conv4], axis=-1)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up6)
-#        act6 = activation(conv6)
-#        norm6 = BatchNormalization(axis=-2)(act6)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(norm6)
-#        act6 = activation(conv6)
-#        norm6 = BatchNormalization(axis=-2)(act6)
-#        
-#        up_conv6 = UpSampling3D(size=pool_size)(norm6)
-#        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
-#        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
-#        up7 = concatenate([up_conv6, crop_conv3], axis=-1)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up7)
-#        act7 = activation(conv7)
-#        norm7 = BatchNormalization(axis=-2)(act7)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(norm7)
-#        act7 = activation(conv7)
-#        norm7 = BatchNormalization(axis=-2)(act7)
-#    
-#        up_conv7 = UpSampling3D(size=pool_size)(norm7)
-#        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
-#        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
-#        up8 = concatenate([up_conv7, crop_conv2], axis=-1)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up8)
-#        act8 = activation(conv8)
-#        norm8 = BatchNormalization(axis=-2)(act8)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(norm8)
-#        act8 = activation(conv8)
-#        norm8 = BatchNormalization(axis=-2)(act8)
-#    
-#        up_conv8 = UpSampling3D(size=pool_size)(norm8)
-#        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
-#        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
-#        up9 = concatenate([up_conv8, crop_conv1], axis=-1)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(up9)
-#        act9 = activation(conv9)
-#        norm9 = BatchNormalization(axis=-2)(act9)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=None, padding=padding)(norm9)
-#        act9 = activation(conv9)
-#        norm9 = BatchNormalization(axis=-2)(act9)
-#        
-#        pool9 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(norm9)
-#    
-#        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
-#                        activation=output_layer_activation)(pool9)
-#    
-#        self.model = Model(inputs=[inputs], outputs=[conv10])
-            
-#    def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
-#                  pool_size=(2, 2, 2), hidden_layer_activation='relu', 
-#                  output_layer_activation=None, padding='same'):
-#        
-#        inputs = Input((input_shape))
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(inputs)
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv1)
-#        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv1)
-#    
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool1)
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv2)
-#        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv2)
-#    
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool2)
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv3)
-#        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv3)
-#    
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool3)
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv4)
-#        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv4)
-#    
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool4)
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv5)
-#    
-#        up_conv5 = UpSampling3D(size=pool_size)(conv5)
-#        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
-#        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
-#        up6 = concatenate([up_conv5, crop_conv4], axis=-1)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up6)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv6)
-#    
-#        up_conv6 = UpSampling3D(size=pool_size)(conv6)
-#        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
-#        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
-#        up7 = concatenate([up_conv6, crop_conv3], axis=-1)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up7)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv7)
-#    
-#        up_conv7 = UpSampling3D(size=pool_size)(conv7)
-#        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
-#        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
-#        up8 = concatenate([up_conv7, crop_conv2], axis=-1)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up8)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv8)
-#    
-#        up_conv8 = UpSampling3D(size=pool_size)(conv8)
-#        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
-#        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
-#        up9 = concatenate([up_conv8, crop_conv1], axis=-1)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up9)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv9)
-#        
-#        pool9 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv9)
-#    
-#        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
-#                        activation=output_layer_activation)(conv9)
-#    
-#        self.model = Model(inputs=[inputs], outputs=[conv10])
-        
-#    def define_model_test(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
-#                  pool_size=(2, 2, 2), hidden_layer_activation='relu', 
-#                  output_layer_activation=None, padding='same'):
-#        
-#        inputs = Input((input_shape))
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(inputs)
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv1)
-#        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv1)
-#    
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool1)
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv2)
-#        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv2)
-#    
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool2)
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv3)
-#        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv3)
-#    
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool3)
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv4)
-#        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv4)
-#    
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool4)
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv5)
-#    
-#        up_conv5 = UpSampling3D(size=pool_size)(conv5)
-#        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
-#        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
-#        up6 = concatenate([up_conv5, crop_conv4], axis=-1)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up6)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv6)
-#    
-#        up_conv6 = UpSampling3D(size=pool_size)(conv6)
-#        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
-#        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
-#        up7 = concatenate([up_conv6, crop_conv3], axis=-1)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up7)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv7)
-#    
-#        up_conv7 = UpSampling3D(size=pool_size)(conv7)
-#        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
-#        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
-#        up8 = concatenate([up_conv7, crop_conv2], axis=-1)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up8)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv8)
-#    
-#        up_conv8 = UpSampling3D(size=pool_size)(conv8)
-#        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
-#        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
-#        up9 = concatenate([up_conv8, crop_conv1], axis=-1)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up9)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv9)
-#        
-#        pool9 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv9)
-#    
-#        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
-#                        activation=output_layer_activation)(conv9)
-#    
-#        self.model = Model(inputs=[inputs], outputs=[conv10])
 
         
     def compile_model(self, loss, optimizer, metrics):
