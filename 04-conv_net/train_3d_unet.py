@@ -72,8 +72,8 @@ linear_output_scaling_factor = 409600000000
 # Training parameters
 #learning_rate = 0.00001
 learning_rate = 0.001
-epochs = 64
-batch_size = 32
+epochs = 32
+batch_size = 64
 optimizer = keras.optimizers.adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, 
                                   epsilon=None, decay=0.0, amsgrad=False)
 evaluate = False

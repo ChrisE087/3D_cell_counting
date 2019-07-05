@@ -15,7 +15,7 @@ from tools import image_processing as impro
 from tools import datatools
 
 # Read the data
-path_to_nuclei = os.path.join('..', '..', '..', 'Daten', '24h', 'untreated', 'C1-untreated_1.1.nrrd')
+path_to_nuclei = os.path.join('..', '..', '..', 'Daten', '72h', 'untreated', 'C1-untreated_1.nrrd')
 data, header = nrrd.read(path_to_nuclei)
 data = data.astype(np.float32)
 
@@ -26,7 +26,7 @@ linear_output_scaling_factor = 409600000000
 standardization_mode = 'per_sample'
 cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor, 
           standardization_mode=standardization_mode)
-import_path = os.path.join(os.getcwd(), 'model_export', '2019-07-03_09-59-27')
+import_path = os.path.join(os.getcwd(), 'model_export', '2019-07-03_11-55-52')
 cnn.load_model_json(import_path, 'model_json', 'model_weights')
 
 # Generate image patches
