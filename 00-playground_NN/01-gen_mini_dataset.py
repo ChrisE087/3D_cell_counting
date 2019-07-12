@@ -45,6 +45,7 @@ size_Z = 200
 #c_Y = int(X.shape[1]/2)
 #c_Z = int(X.shape[2]/2)
 
+# Set the center of the volume to the upper left
 c_X = 110
 c_Y = 110
 c_Z = 250
@@ -61,8 +62,8 @@ plt.imshow(X_s[:,:,20])
 plt.imshow(Y_s[:,:,20])
 
 # Generate Patches
-patch_slices = patch_rows = patch_cols = 32
-stride_slices = stride_rows = stride_cols = 16
+patch_slices = patch_rows = patch_cols = 16
+stride_slices = stride_rows = stride_cols = 8
 
 # WORKAROUND because tensorflow moves the X and y volumes relative to each 
 # other if X are int values and Y are float values -> Normalize and Scale the 
@@ -72,12 +73,12 @@ Y_s = impro.scale_data(Y_s, 65535)
 
 # Extract the image patches
 session = tf.Session()
-p_X = impro.gen_patches2(session=session, data=X_s, patch_slices=patch_slices, 
+p_X = impro.gen_patches(session=session, data=X_s, patch_slices=patch_slices, 
                    patch_rows=patch_rows, patch_cols=patch_cols, 
                    stride_slices=stride_slices, stride_rows=stride_rows, 
                    stride_cols=stride_cols, input_dim_order='XYZ', 
                    padding='SAME')
-p_Y = impro.gen_patches2(session=session, data=Y_s, patch_slices=patch_slices, 
+p_Y = impro.gen_patches(session=session, data=Y_s, patch_slices=patch_slices, 
                    patch_rows=patch_rows, patch_cols=patch_cols, 
                    stride_slices=stride_slices, stride_rows=stride_rows, 
                    stride_cols=stride_cols, input_dim_order='XYZ', 
@@ -87,8 +88,8 @@ p_Y = impro.gen_patches2(session=session, data=Y_s, patch_slices=patch_slices,
 p_Y = impro.unscale_data(p_Y, 65535)
 p_Y = impro.unnormalize_data(p_Y, max_val, min_val)
 
-plt.imshow(p_X[7,0,12,8,:,:])
-plt.imshow(p_Y[7,0,12,8,:,:])
+plt.imshow(p_X[4,1,4,8,:,:])
+plt.imshow(p_Y[4,1,4,8,:,:])
 
 export_path = os.path.join(os.getcwd(), 'mini_dataset')
 save_dataset(p_X, p_Y, export_path)

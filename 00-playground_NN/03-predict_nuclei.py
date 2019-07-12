@@ -22,11 +22,10 @@ plt.imshow(data[:,:,55])
 
 # Load the CNN
 linear_output_scaling_factor = 409600000000
-standardize_input_data = True
-standardization_mode = 'volume_wise'
+standardization_mode = 'per_sample'
 cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor, 
-          standardize_input_data=True, standardization_mode=standardization_mode)
-import_path = os.path.join(os.getcwd(), 'model_export', '2019-06-27_13-56-38')
+          standardization_mode=standardization_mode)
+import_path = os.path.join(os.getcwd(), 'model_export', '2019-07-10_13-39-33')
 cnn.load_model_json(import_path, 'model_json', 'model_weights')
 
 # Generate image patches
@@ -36,7 +35,8 @@ size_x = patch_cols = 32
 stride_z = stride_slices = 16
 stride_y = stride_rows = 16
 stride_x = stride_cols = 16
-patches = impro.gen_patches(data=data, patch_slices=size_z, patch_rows=size_y, 
+session = tf.Session()
+patches = impro.gen_patches(session=session, data=data, patch_slices=size_z, patch_rows=size_y, 
                             patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y, 
                             stride_cols=stride_x, input_dim_order='XYZ', padding='VALID')
 
@@ -86,4 +86,4 @@ print(np.sum(density_map))
 
 # Save the results
 nrrd.write('nuclei.nrrd', nuclei)
-nrrd.write('density_map5.nrrd', density_map)
+nrrd.write('density_map6.nrrd', density_map)

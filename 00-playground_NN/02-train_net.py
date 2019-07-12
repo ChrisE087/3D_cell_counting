@@ -18,7 +18,7 @@ from tools import datatools
 ###############################################################################
 
 # Dataset Parameters
-path_to_dataset = os.path.join('mini_dataset', 'upper_left')
+path_to_dataset = os.path.join('mini_dataset', 'upper_left_size32_stride16')
 train_split = 0.8
 val_split = 0.1
 test_split = 0.1
@@ -27,25 +27,26 @@ channels = 1
 
 # Model Parameters
 input_shape = data_shape + (channels,)
+filters_exp = 5#4
 hidden_layer_activation = 'relu'
 #hidden_layer_activation = keras.layers.LeakyReLU(alpha=0.2)
-output_layer_activation = None
+#batchnorm = True
+output_layer_activation = None#'linear'
 padding = 'same'
 
 # Data Generator parameters
-shuffle = True
-normalize_input_data = False
-standardize_input_data = True
-standardization_mode = 'volume_wise' # None, 'volume_wise' or 'slice_wise'
+train_shuffle = False
+val_shuffle = False
+standardization_mode = 'per_sample' # None, 'volume_wise' or 'slice_wise'
 #border = (int(data_shape[0]/4), int(data_shape[1]/4), int(data_shape[2]/4))
 border = None
 linear_output_scaling_factor = 409600000000
 
 # Training parameters
 #learning_rate = 0.00001
-learning_rate = 0.001
-epochs = 16
-batch_size = 16
+learning_rate = 0.005
+epochs = 64
+batch_size = 32
 optimizer = keras.optimizers.adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, 
                                   epsilon=None, decay=0.0, amsgrad=False)
 evaluate = False
@@ -102,13 +103,16 @@ test_list = test_list.tolist()
 ###############################################################################
 
 cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor, 
-          standardize_input_data=standardize_input_data, 
           standardization_mode=standardization_mode)
-cnn.define_model_test(input_shape=input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
+cnn.define_model(input_shape=input_shape, filters_exp=filters_exp, kernel_size=(3, 3, 3), 
                   pool_size=(2, 2, 2), hidden_layer_activation=hidden_layer_activation, 
                   output_layer_activation=output_layer_activation, padding=padding)
 
-cnn.compile_model(loss=loss, optimizer=optimizer, metrics=metrics)
+#cnn.define_unet(input_shape=input_shape, n_filters=8, kernel_size=3, 
+#                  batchnorm=batchnorm, hidden_layer_activation=hidden_layer_activation,
+#                  output_layer_activation=None, pool_size=2, padding=padding)
+
+summary = cnn.compile_model(loss=loss, optimizer=optimizer, metrics=metrics)
 
 ###############################################################################
 # Fit the model
@@ -116,17 +120,13 @@ cnn.compile_model(loss=loss, optimizer=optimizer, metrics=metrics)
 
 train_generator = datagen.DataGenerator(path_to_dataset=path_to_dataset, 
                                         filenames_list=train_list, dim=data_shape, 
-                                        channels=channels, batch_size=batch_size, shuffle=shuffle, 
-                                        normalize_input_data=normalize_input_data, 
-                                        standardize_input_data=standardize_input_data, 
+                                        channels=channels, batch_size=batch_size, shuffle=train_shuffle, 
                                         standardization_mode=standardization_mode,
                                         linear_output_scaling_factor=linear_output_scaling_factor, 
                                         border=border)
 val_generator = datagen.DataGenerator(path_to_dataset=path_to_dataset, 
                                       filenames_list=val_list, dim=data_shape, 
-                                      channels=channels, batch_size=batch_size, shuffle=shuffle, 
-                                      normalize_input_data=normalize_input_data, 
-                                      standardize_input_data=standardize_input_data,
+                                      channels=channels, batch_size=batch_size, shuffle=val_shuffle, 
                                       standardization_mode=standardization_mode,
                                       linear_output_scaling_factor=linear_output_scaling_factor, 
                                       border=border)
@@ -140,7 +140,6 @@ history = cnn.fit_generator(epochs=epochs, train_generator=train_generator, val_
 # Load unstandardized test data
 X_test_data, y_test_data = datatools.load_data(path_to_dataset=path_to_dataset, 
                                                data_list=test_list, input_shape=data_shape,
-                                               standardize_input_data=False,
                                                standardization_mode=None,
                                                border=border)
 if evaluate == True:
@@ -175,13 +174,14 @@ y_test = y_test_data[rand_int,]
 
 y_pred = cnn.predict_sample(X_test)
 
+plt_slice = 8
 if border == None:
     plt.imshow(X_test[8,:,:])
 else:
     X_inner = impro.get_inner_slice(X_test, border)
-    plt.imshow(X_inner[8,:,:])
-plt.imshow(y_test[8,:,:])
-plt.imshow(y_pred[8,:,:])
+    plt.imshow(X_inner[plt_slice,:,:])
+plt.imshow(y_test[plt_slice,:,:])
+plt.imshow(y_pred[plt_slice,:,:])
 
 print('Number of cells (ground truth): ', np.sum(y_test))
 print('Number of cells (predicted): ', np.sum(y_pred))
