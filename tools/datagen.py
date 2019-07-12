@@ -39,6 +39,17 @@ class DataGenerator(keras.utils.Sequence):
                                    data_list=filenames, input_shape=self.dim, 
                                    standardization_mode=self.standardization_mode,
                                    border=self.border)
+        
+#        if self.standardization_mode != None:
+#            standardize = True
+#            #print('Datagen performing standardization...')
+#        else:
+#            standardize = False
+#            #print('Datagen without standardization...')
+#        X, y = datatools.load_data2(path_to_dataset=self.path_to_dataset, 
+#                                   data_list=filenames, input_shape=self.dim, 
+#                                   standardize=standardize,
+#                                   border=self.border)
             
         # Scale the data
         y = y*self.linear_output_scaling_factor

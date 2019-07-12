@@ -1,6 +1,7 @@
 import SimpleITK as sitk
 import numpy as np
 from scipy import signal
+import math
 import tensorflow as tf
 
 def make_image_isotropic(simple_itk_image, interpolator, add_to_z=-1):
@@ -272,6 +273,8 @@ def standardize_data(data, mode='per_sample', epsilon=1e-8):
               not supported. Modes are only "per_slice" for slice-wise\
               normalization, "per_sample" for sample-wise normalization or\
               "per_batch" for normalization of the whole batch.')
+        if remove_batch_dim == True:
+            data = data[0,]
         return data
             
     # Remove the batch dimension
@@ -279,6 +282,31 @@ def standardize_data(data, mode='per_sample', epsilon=1e-8):
         standardized_data = standardized_data[0,]
         
     return standardized_data
+
+def standardize_3d_images(data):
+    remove_batch_dim = False
+    # Add the batch dimension
+    if np.size(data.shape) == 3:
+        data = data[np.newaxis, ]
+        remove_batch_dim = True
+        
+    data_std = np.zeros_like(data)
+        
+    for i in range(data.shape[0]):
+        data_std[i,] = standardize_3d_image(data[i,])
+        
+    if remove_batch_dim == True:
+        data_std = data_std[0,]
+    
+    return data_std
+        
+        
+def standardize_3d_image(image):
+    mean = image.mean()
+    std = image.std()
+    adj_std = max(std, 1.0/math.sqrt(image.size))
+    return (image - mean)/adj_std
+    
 
 def standardize_volume(input_data):
     """
