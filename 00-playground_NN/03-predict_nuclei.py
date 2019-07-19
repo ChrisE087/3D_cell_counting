@@ -15,17 +15,22 @@ from tools import image_processing as impro
 from tools import datatools
 
 # Read the data
-path_to_nuclei = os.path.join('test_data', '48h-X-C2-untreated_3.nrrd')
+#path_to_nuclei = os.path.join('test_data', '48h-X-C2-untreated_3.nrrd')
+path_to_nuclei = os.path.join('..', '..', '..', 'Daten', '72h', 'untreated', 'C2-untreated_4.nrrd')
 data, header = nrrd.read(path_to_nuclei)
 
 plt.imshow(data[:,:,55])
 
 # Load the CNN
-linear_output_scaling_factor = 409600000000
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+linear_output_scaling_factor = 1e12
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 standardization_mode = 'per_sample'
 cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor, 
           standardization_mode=standardization_mode)
-import_path = os.path.join(os.getcwd(), 'model_export', '2019-07-10_13-39-33')
+import_path = os.path.join(os.getcwd(), 'model_export', '2019-07-19_18-50-39')
 cnn.load_model_json(import_path, 'model_json', 'model_weights')
 
 # Generate image patches
@@ -86,4 +91,4 @@ print(np.sum(density_map))
 
 # Save the results
 nrrd.write('nuclei.nrrd', nuclei)
-nrrd.write('density_map6.nrrd', density_map)
+nrrd.write('density_map7.nrrd', density_map)

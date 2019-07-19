@@ -19,18 +19,23 @@ def save_dataset(p_X, p_Y, export_path):
                 #if np.sum(Y) > tresh:
                 export[0,] = X
                 export[1,] = Y
-                patch_name = "%04d.nrrd" % (num)
+                patch_name = "%06d.nrrd" % (num)
                 num += 1
                 filename = os.path.join(export_path, patch_name)
                 nrrd.write(filename, export)
         
-
+#%%############################################################################
+# Extract the dataset from the spheroid
+###############################################################################
 path_X = os.path.join('test_data', '48h-X-C2-untreated_3.nrrd')
-path_Y = os.path.join('test_data', '48h-Y-C2-untreated_3.nrrd')
+path_Y = os.path.join('test_data', '48h-Y_Fiji-C2-untreated_3.nrrd')
 X, X_header = nrrd.read(path_X) # XYZ
 Y, y_header = nrrd.read(path_Y) # XYZ
 
-Y_s = Y*409600000000
+extract = 'upper_left' # extract the 'upper_left' or 'center' of the spheroid
+
+# Print the min and max after scaling
+Y_s = Y*819200000000
 print(np.min(Y_s))
 print(np.max(Y_s))
 print(X.shape)
@@ -40,15 +45,18 @@ size_X = 200
 size_Y = 200
 size_Z = 200
 
-# Calculate the center of the volume
-#c_X = int(X.shape[0]/2)
-#c_Y = int(X.shape[1]/2)
-#c_Z = int(X.shape[2]/2)
-
-# Set the center of the volume to the upper left
-c_X = 110
-c_Y = 110
-c_Z = 250
+if extract == 'center':
+    # Calculate the center of the volume
+    c_X = int(X.shape[0]/2)
+    c_Y = int(X.shape[1]/2)
+    c_Z = int(X.shape[2]/2)
+elif extract == 'upper_left':
+    # Set the center of the volume to the upper left
+    c_X = 110
+    c_Y = 110
+    c_Z = 250
+else:
+    print('Wrong argument for "extract"')
 
 # Slice a volume out of the center
 X_s = X[c_X-int(size_X/2):c_X+int(size_X/2), 
@@ -58,12 +66,15 @@ Y_s = Y[c_X-int(size_X/2):c_X+int(size_X/2),
         c_Y-int(size_Y/2):c_Y+int(size_Y/2), 
         c_Z-int(size_Z/2):c_Z+int(size_Z/2)]
 
+# Plot a slice of the dataset
 plt.imshow(X_s[:,:,20])
 plt.imshow(Y_s[:,:,20])
 
-# Generate Patches
-patch_slices = patch_rows = patch_cols = 16
-stride_slices = stride_rows = stride_cols = 8
+#%%############################################################################
+# Generate the patches
+###############################################################################
+patch_slices = patch_rows = patch_cols = 32
+stride_slices = stride_rows = stride_cols = 16
 
 # WORKAROUND because tensorflow moves the X and y volumes relative to each 
 # other if X are int values and Y are float values -> Normalize and Scale the 
@@ -88,9 +99,10 @@ p_Y = impro.gen_patches(session=session, data=Y_s, patch_slices=patch_slices,
 p_Y = impro.unscale_data(p_Y, 65535)
 p_Y = impro.unnormalize_data(p_Y, max_val, min_val)
 
-plt.imshow(p_X[4,1,4,8,:,:])
-plt.imshow(p_Y[4,1,4,8,:,:])
+# Plot a slice of an example patch
+plt.imshow(p_X[4,5,6,8,:,:])
+plt.imshow(p_Y[4,5,6,8,:,:])
 
-export_path = os.path.join(os.getcwd(), 'mini_dataset')
+export_path = os.path.join(os.getcwd(), 'mini_dataset', 'Fiji_upper_left_size32_stride16')
 save_dataset(p_X, p_Y, export_path)
 
