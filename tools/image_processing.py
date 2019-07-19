@@ -134,7 +134,7 @@ def get_centroids(raw_data, spacings, excluded_volume_size):
             centroid_coords = centroid_coords/spacings
             
             # Round the centroid coordinates to int
-            centroid_coords = np.ceil(centroid_coords).astype(int)
+            centroid_coords = np.floor(centroid_coords).astype(int)
             
             # Make a dot in the result volume at the centroid coordinats
             centroids[centroid_coords[2], centroid_coords[1], centroid_coords[0]] = 1 #ZYX

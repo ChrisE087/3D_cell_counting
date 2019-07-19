@@ -51,7 +51,7 @@ def train_val_test_split(data_list, train_split, val_split, test_split, shuffle=
 #        
 #    return data_list_24h, data_list_48h, data_list_72h
     
-def split_cultivation_period(data_list):
+def split_cultivation_period(data_list, shuffle=True):
     # Split the files into cultivation period
     data_list_24h = []
     data_list_48h = []
@@ -65,6 +65,11 @@ def split_cultivation_period(data_list):
         
     for element in filter(lambda element: '72h' in element, data_list):
         data_list_72h.append(element)
+        
+    if shuffle == True:
+        np.random.shuffle(data_list_24h)
+        np.random.shuffle(data_list_48h)
+        np.random.shuffle(data_list_72h)
         
     return data_list_24h, data_list_48h, data_list_72h
 

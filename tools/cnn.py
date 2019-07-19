@@ -1,6 +1,6 @@
 import numpy as np
 from keras.models import Model, load_model, model_from_json
-from keras.layers import Input, Conv3D, Conv3DTranspose, ReLU, LeakyReLU, Activation, MaxPooling3D, UpSampling3D, Cropping3D, BatchNormalization
+from keras.layers import Input, Conv3D, Conv3DTranspose, ReLU, LeakyReLU, ELU, Activation, MaxPooling3D, UpSampling3D, Cropping3D, BatchNormalization, Dropout, Conv3DTranspose
 from keras.layers.merge import concatenate
 from keras import backend as K
 from keras.regularizers import l2
@@ -301,75 +301,96 @@ class CNN():
     def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
                       pool_size=(2, 2, 2), hidden_layer_activation='relu', 
                       output_layer_activation=None, regularization=None, 
-                      padding='same'):
+                      dropout_rate=0.2, padding='same'):
         norm_axis = -1
         if regularization != None:
             kernel_regularizer = l2(regularization)
+            bias_regularizer = l2(regularization)
         else:
             kernel_regularizer = None
         
         inputs = Input((input_shape))
         conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
                        activation=None, padding=padding, 
-                       kernel_regularizer=kernel_regularizer)(inputs)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(inputs)
         conv1 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv1)
+        #conv1 = Dropout(rate=dropout_rate)(conv1)
         conv1 = BatchNormalization(axis=norm_axis)(conv1)
         conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(conv1)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(conv1)
         conv1 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv1)
+        conv1 = Dropout(rate=dropout_rate)(conv1)
         conv1 = BatchNormalization(axis=norm_axis)(conv1)
         pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
                              padding=padding)(conv1)
         
         conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(pool1)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(pool1)
         conv2 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv2)
+        #conv2 = Dropout(rate=dropout_rate)(conv2)
         conv2 = BatchNormalization(axis=norm_axis)(conv2)
         conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(conv2)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(conv2)
         conv2 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv2)
+        conv2 = Dropout(rate=dropout_rate)(conv2)
         conv2 = BatchNormalization(axis=norm_axis)(conv2)
         pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
                              padding=padding)(conv2)
         
         conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(pool2)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(pool2)
         conv3 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv3)
+        #conv3 = Dropout(rate=dropout_rate)(conv3)
         conv3 = BatchNormalization(axis=norm_axis)(conv3)
         conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(conv3)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(conv3)
         conv3 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv3)
+        conv3 = Dropout(rate=dropout_rate)(conv3)
         conv3 = BatchNormalization(axis=norm_axis)(conv3)
         pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
                              padding=padding)(conv3)
         
         conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(pool3)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(pool3)
         conv4 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv4)
+        #conv4 = Dropout(rate=dropout_rate)(conv4)
         conv4 = BatchNormalization(axis=norm_axis)(conv4)
         conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(conv4)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(conv4)
         conv4 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv4)
+        conv4 = Dropout(rate=dropout_rate)(conv4)
         conv4 = BatchNormalization(axis=norm_axis)(conv4)
         pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
                              padding=padding)(conv4)
         
         conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(pool4)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(pool4)
         conv5 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv5)
+        #conv5 = Dropout(rate=dropout_rate)(conv5)
         conv5 = BatchNormalization(axis=norm_axis)(conv5)
         conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(conv5)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(conv5)
         conv5 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv5)
+        conv5 = Dropout(rate=dropout_rate)(conv5)
         conv5 = BatchNormalization(axis=norm_axis)(conv5)
         
         up_conv5 = UpSampling3D(size=pool_size)(conv5)
@@ -378,13 +399,17 @@ class CNN():
         up6 = concatenate([up_conv5, crop_conv4], axis=-1)
         conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(up6)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(up6)
         conv6 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv6)
+        #conv6 = Dropout(rate=dropout_rate)(conv6)
         #conv6 = BatchNormalization(axis=norm_axis)(conv6)
         conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(conv6)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(conv6)
         conv6 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv6)
+        conv6 = Dropout(rate=dropout_rate)(conv6)
         #conv6 = BatchNormalization(axis=norm_axis)(conv6)
         
         up_conv6 = UpSampling3D(size=pool_size)(conv6)
@@ -393,13 +418,17 @@ class CNN():
         up7 = concatenate([up_conv6, crop_conv3], axis=-1)
         conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(up7)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(up7)
         conv7 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv7)
+        #conv7 = Dropout(rate=dropout_rate)(conv7)
         #conv7 = BatchNormalization(axis=norm_axis)(conv7)
         conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(conv7)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(conv7)
         conv7 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv7)
+        conv7 = Dropout(rate=dropout_rate)(conv7)
         #conv7 = BatchNormalization(axis=norm_axis)(conv7)
         
         up_conv7 = UpSampling3D(size=pool_size)(conv7)
@@ -408,13 +437,17 @@ class CNN():
         up8 = concatenate([up_conv7, crop_conv2], axis=-1)
         conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(up8)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(up8)
         conv8 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv8)
+        #conv8 = Dropout(rate=dropout_rate)(conv8)
         #conv8 = BatchNormalization(axis=norm_axis)(conv8)
         conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(conv8)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(conv8)
         conv8 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv8)
+        conv8 = Dropout(rate=dropout_rate)(conv8)
         #conv8 = BatchNormalization(axis=norm_axis)(conv8)
         
         up_conv8 = UpSampling3D(size=pool_size)(conv8)
@@ -423,13 +456,17 @@ class CNN():
         up9 = concatenate([up_conv8, crop_conv1], axis=-1)
         conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(up9)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(up9)
         conv9 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv9)
+        #conv9 = Dropout(rate=dropout_rate)(conv9)
         #conv9 = BatchNormalization(axis=norm_axis)(conv9)
         conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
                        activation=None, padding=padding,
-                       kernel_regularizer=kernel_regularizer)(conv9)
+                       kernel_regularizer=kernel_regularizer,
+                       bias_regularizer=bias_regularizer)(conv9)
         conv9 = ReLU(max_value=None, negative_slope=0.0, threshold=0.0)(conv9)
+        conv9 = Dropout(rate=dropout_rate)(conv9)
         #conv9 = BatchNormalization(axis=norm_axis)(conv9)
         
         conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
@@ -540,6 +577,162 @@ class CNN():
 #                        activation=output_layer_activation)(norm9)
 #    
 #        self.model = Model(inputs=[inputs], outputs=[conv10])
+        
+        
+    def conv3d_block(self, input_tensor, n_filters, kernel_size=(3, 3, 3),
+                     kernel_initializer='glorot_uniform', activation='relu', 
+                     alpha=None, batchnorm=True, regularization_rate=None, 
+                     dropout_rate=None, padding='same'):
+        
+        norm_axis = -1
+        
+        if regularization_rate != None:
+            kernel_regularizer = l2(regularization_rate)
+            bias_regularizer = l2(regularization_rate)
+        else:
+            kernel_regularizer = None
+            bias_regularizer = None
+            
+        
+        # First Conv->Activation->Dropout->Batch-Norm layer
+        x = Conv3D(filters=n_filters, kernel_size=kernel_size, activation=None, padding=padding, 
+                   use_bias=False, 
+                   kernel_regularizer=kernel_regularizer,
+                   bias_regularizer=bias_regularizer,
+                   kernel_initializer=kernel_initializer)(input_tensor)
+        
+        if activation == 'leaky_relu':
+            x = LeakyReLU(alpha=alpha)(x)
+        elif activation == 'elu':
+            x = ELU(alpha=alpha)(x)
+        else:
+            x = Activation('relu')(x)
+            
+        if dropout_rate != None:
+            x = Dropout(rate=dropout_rate)
+        
+        if batchnorm == True:
+            x = BatchNormalization(axis=norm_axis)(x)
+        
+        # Second Conv->Activation->Dropout->Batch-Norm layer
+        x = Conv3D(filters=n_filters, kernel_size=kernel_size, activation=None, padding=padding, 
+                   use_bias=False,
+                   kernel_regularizer=kernel_regularizer,
+                   bias_regularizer=bias_regularizer,
+                   kernel_initializer=kernel_initializer)(x)
+        
+        if activation == 'leaky_relu':
+            x = LeakyReLU(alpha=alpha)(x)
+        elif activation == 'elu':
+            x = ELU(alpha=alpha)(x)
+        else:
+            x = Activation('relu')(x)
+        
+        if dropout_rate != None:
+            x = Dropout(rate=dropout_rate)
+        
+        if batchnorm == True:
+            x = BatchNormalization(axis=norm_axis)(x)
+        
+        return x
+    
+    def define_unet(self, input_shape, n_filters=16, kernel_size=(3, 3, 3), 
+                  pool_size=(2, 2, 2), kernel_initializer='glorot_uniform', 
+                  hidden_layer_activation='relu', alpha=None, batchnorm=False,
+                  regularization_rate=None, dropout_rate=None, 
+                  output_layer_activation=None, padding='same'):
+        #######################################################################
+        # Encoder part
+        #######################################################################
+        inputs = Input((input_shape))
+        c1 = self.conv3d_block(inputs, n_filters, kernel_size=kernel_size,
+                     kernel_initializer=kernel_initializer, activation=hidden_layer_activation, 
+                     alpha=alpha, batchnorm=batchnorm, regularization_rate=regularization_rate, 
+                     dropout_rate=dropout_rate, padding=padding)
+        p1 = MaxPooling3D(pool_size=pool_size, strides=None, 
+                             padding=padding)(c1)
+        
+        c2 = self.conv3d_block(p1, n_filters*2, kernel_size=kernel_size,
+                     kernel_initializer=kernel_initializer, activation=hidden_layer_activation, 
+                     alpha=alpha, batchnorm=batchnorm, regularization_rate=regularization_rate, 
+                     dropout_rate=dropout_rate, padding=padding)
+        p2 = MaxPooling3D(pool_size=pool_size, strides=None, 
+                             padding=padding)(c2)
+        
+        c3 = self.conv3d_block(p2, n_filters*4, kernel_size=kernel_size,
+                     kernel_initializer=kernel_initializer, activation=hidden_layer_activation, 
+                     alpha=alpha, batchnorm=batchnorm, regularization_rate=regularization_rate, 
+                     dropout_rate=dropout_rate, padding=padding)
+        p3 = MaxPooling3D(pool_size=pool_size, strides=None, 
+                             padding=padding)(c3)
+        
+        c4 = self.conv3d_block(p3, n_filters*8, kernel_size=kernel_size,
+                     kernel_initializer=kernel_initializer, activation=hidden_layer_activation, 
+                     alpha=alpha, batchnorm=batchnorm, regularization_rate=regularization_rate, 
+                     dropout_rate=dropout_rate, padding=padding)
+        p4 = MaxPooling3D(pool_size=pool_size, strides=None, 
+                             padding=padding)(c4)
+        
+        c5 = self.conv3d_block(p4, n_filters*16, kernel_size=kernel_size,
+                     kernel_initializer=kernel_initializer, activation=hidden_layer_activation, 
+                     alpha=alpha, batchnorm=batchnorm, regularization_rate=regularization_rate, 
+                     dropout_rate=dropout_rate, padding=padding)
+        
+        #######################################################################
+        # Decoder part
+        #######################################################################
+        u6 = Conv3DTranspose(filters=n_filters*8, kernel_size=kernel_size, 
+                             strides=pool_size, padding=padding, activation=None, 
+                             use_bias=True, kernel_initializer=kernel_initializer, 
+                             bias_initializer='zeros', kernel_regularizer=None, 
+                             bias_regularizer=None, activity_regularizer=None)(c5)
+        #u6 = UpSampling3D(size=pool_size)(c5)
+        u6 = concatenate([u6, c4], axis=-1)
+        c6 = self.conv3d_block(u6, n_filters*8, kernel_size=kernel_size,
+                     kernel_initializer=kernel_initializer, activation=hidden_layer_activation, 
+                     alpha=alpha, batchnorm=batchnorm, regularization_rate=regularization_rate, 
+                     dropout_rate=dropout_rate, padding=padding)
+        
+        u7 = Conv3DTranspose(filters=n_filters*4, kernel_size=kernel_size, 
+                             strides=pool_size, padding=padding, activation=None, 
+                             use_bias=True, kernel_initializer=kernel_initializer, 
+                             bias_initializer='zeros', kernel_regularizer=None, 
+                             bias_regularizer=None, activity_regularizer=None)(c6)
+        #u7 = UpSampling3D(size=pool_size)(c6)
+        u7 = concatenate([u7, c3], axis=-1)
+        c7 = self.conv3d_block(u7, n_filters*4, kernel_size=kernel_size,
+                     kernel_initializer=kernel_initializer, activation=hidden_layer_activation, 
+                     alpha=alpha, batchnorm=batchnorm, regularization_rate=regularization_rate, 
+                     dropout_rate=dropout_rate, padding=padding)
+        
+        u8 = Conv3DTranspose(filters=n_filters*2, kernel_size=kernel_size, 
+                             strides=pool_size, padding=padding, activation=None, 
+                             use_bias=True, kernel_initializer=kernel_initializer, 
+                             bias_initializer='zeros', kernel_regularizer=None, 
+                             bias_regularizer=None, activity_regularizer=None)(c7)
+        #u8 = UpSampling3D(size=pool_size)(c7)
+        u8 = concatenate([u8, c2], axis=-1)
+        c8 = self.conv3d_block(u8, n_filters*2, kernel_size=kernel_size,
+                     kernel_initializer=kernel_initializer, activation=hidden_layer_activation, 
+                     alpha=alpha, batchnorm=batchnorm, regularization_rate=regularization_rate, 
+                     dropout_rate=dropout_rate, padding=padding)
+        
+        u9 = Conv3DTranspose(filters=n_filters, kernel_size=kernel_size, 
+                             strides=pool_size, padding=padding, activation=None, 
+                             use_bias=True, kernel_initializer=kernel_initializer, 
+                             bias_initializer='zeros', kernel_regularizer=None, 
+                             bias_regularizer=None, activity_regularizer=None)(c8)
+        #u9 = UpSampling3D(size=pool_size))(c8)
+        u9 = concatenate([u9, c1], axis=-1)
+        c9 = self.conv3d_block(u9, n_filters, kernel_size=kernel_size,
+                     kernel_initializer=kernel_initializer, activation=hidden_layer_activation, 
+                     alpha=alpha, batchnorm=batchnorm, regularization_rate=regularization_rate, 
+                     dropout_rate=dropout_rate, padding=padding)
+        
+        outputs = Conv3D(filters=1, kernel_size=(1, 1, 1), 
+                        activation=output_layer_activation)(c9)
+        
+        self.model = Model(inputs=[inputs], outputs=[outputs])
         
         
 #    def conv3d_block(self, input_tensor, n_filters, kernel_size=3, padding='same', 

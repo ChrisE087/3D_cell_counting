@@ -9,11 +9,12 @@ from tools import datatools
 
 class DataGenerator(keras.utils.Sequence):
     
-    def __init__(self, path_to_dataset, filenames_list, dim, channels=1, batch_size=32, 
-                 shuffle=True, standardization_mode='volume_wise', linear_output_scaling_factor=1, 
+    def __init__(self, val, path_to_dataset, filenames_list, dim, channels=1, batch_size=32, 
+                 shuffle=True, standardization_mode='per_sample', linear_output_scaling_factor=1, 
                  border=None):
         
         # Initialize the class
+        self.val = val
         self.path_to_dataset = path_to_dataset
         self.filenames_list = filenames_list 
         self.channels = channels
@@ -39,6 +40,20 @@ class DataGenerator(keras.utils.Sequence):
                                    data_list=filenames, input_shape=self.dim, 
                                    standardization_mode=self.standardization_mode,
                                    border=self.border)
+        
+        # Debugging
+#        if self.val == False:
+#            f = open('traingen.log', 'a+')
+#            f.write('-------------------->New Epoch\n')
+#            for i in range(len(filenames)):
+#                f.write(filenames[i]+'\n')
+#            f.close()
+#        else:
+#            f = open('valgen.log', 'a+')
+#            f.write('-------------------->New Epoch\n')
+#            for i in range(len(filenames)):
+#                f.write(filenames[i]+'\n')
+#            f.close()
         
 #        if self.standardization_mode != None:
 #            standardize = True
