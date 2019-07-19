@@ -14,7 +14,7 @@ from tools import image_processing as impro
 javabridge.start_vm(class_path=bioformats.JARS)
 
 #path_to_data = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..', 'Daten', '24h', 'untreated'))
-path_to_data = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..', 'Daten'))
+path_to_data = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..', '..', 'Daten'))
 interpolator = 'bspline'
 
 for directory in os.listdir(path_to_data):
@@ -67,6 +67,7 @@ for directory in os.listdir(path_to_data):
                 
                 # Transpose the numpy array from ZYX back to to XYZ
                 np_image = np.transpose(np_image, axes=[2,1,0]) # XYZ
+                np_image = np_image.astype('uint8')
                 
                 
                 
@@ -79,7 +80,7 @@ for directory in os.listdir(path_to_data):
                           "units": ['"microns"', '"microns"', '"microns"']}
                 name = os.path.splitext(filename)[0]
                 new_filename = os.path.join(data_dir, name)
-                new_filename = new_filename+'.nrrd'
+                new_filename = new_filename+'_8_bit'+'.nrrd'
                 nrrd.write(new_filename, data=np_image, header=header, index_order='F')
 
 
