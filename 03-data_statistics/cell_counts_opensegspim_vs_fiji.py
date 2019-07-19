@@ -27,7 +27,7 @@ for subdir1 in subdirs1:
                 centroid_name = result_dir.split(os.path.sep)[4] + '->' + result_dir.split(os.path.sep)[6]
                 if centroid_name.endswith('_OpenSegSPIMResults_'):
                     centroid_name = centroid_name[:-20]
-                label_file_opensegspim = os.path.join(result_dir, 'Nucleisegmentedfill.nrrd')
+                label_file_opensegspim = os.path.join(result_dir, 'Nucleisegmentedfill_labelled.nrrd')
                 label_file_fiji = os.path.join(result_dir, 'Nucleisegmentedfill2r_labelled.nrrd')
                 labels_opensegspim, header_opensegspim = nrrd.read(label_file_opensegspim)
                 labels_fiji, header_fiji = nrrd.read(label_file_fiji)
