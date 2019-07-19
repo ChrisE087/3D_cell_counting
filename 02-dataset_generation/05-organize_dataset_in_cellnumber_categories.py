@@ -7,7 +7,7 @@ import nrrd
 from operator import itemgetter
 from shutil import copyfile
 
-path_to_dataset = os.path.join('..', '..', '..', 'Daten', 'dataset_size32_stride16')
+path_to_dataset = os.path.join('..', '..', '..', 'Daten', 'dataset_size64_stride32')
 files = os.listdir(path_to_dataset)
 cell_nums = []
 
@@ -16,7 +16,7 @@ for i in range(len(files)):
     cell_nums.append([files[i], np.sum(data[1,])])
     
 cell_nums_sorted = sorted(cell_nums, key=itemgetter(1))
-cell_num_steps = np.arange(0, 50, 0.1)
+cell_num_steps = np.arange(0, 500, 0.1)
 step = 0
 db = []
 

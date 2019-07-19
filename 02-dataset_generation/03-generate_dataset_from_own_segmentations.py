@@ -65,7 +65,7 @@ for subdir1 in subdirs1:
                     for subdir3 in subdirs3:
                         # OpensegSPIM results level
                         if spheroid_name in subdir3 and "72h" in subdir1:
-                            if 'C1' in spheroid:
+                            if 'C2' in spheroid:
                                 result_dir = os.path.join(untreated_dir, subdir3)
                                 centroids_file = os.path.join(result_dir, 'gauss_centroids_own_seg.nrrd')
                                 print('Corresponding Centroid: ', centroids_file)
