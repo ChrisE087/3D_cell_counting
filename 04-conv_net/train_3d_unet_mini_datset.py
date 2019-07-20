@@ -25,11 +25,12 @@ channels = 1
 input_shape = data_shape + (channels,)
 hidden_layer_activation = 'relu'
 #hidden_layer_activation = keras.layers.LeakyReLU(alpha=0.2)
+batchnorm = False
 output_layer_activation = None
 padding = 'same'
 
 # Data Generator parameters
-train_shuffle = True
+train_shuffle = False
 val_shuffle = False
 standardization_mode = 'per_sample' # 'per_slice', 'per_sample' or 'per_batch'
 border = None # None or border in each dimension around the inner slice which should be extracted
@@ -38,8 +39,8 @@ linear_output_scaling_factor = 409600000000
 # Training parameters
 #learning_rate = 0.00001
 learning_rate = 0.001
-epochs = 32
-batch_size = 32
+epochs = 16
+batch_size = 64
 optimizer = keras.optimizers.adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, 
                                   epsilon=None, decay=0.0, amsgrad=False)
 evaluate = False
@@ -90,8 +91,11 @@ cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor,
 cnn.define_model(input_shape=input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
                   pool_size=(2, 2, 2), hidden_layer_activation=hidden_layer_activation, 
                   output_layer_activation=output_layer_activation, padding=padding)
+#cnn.define_unet(input_shape=input_shape, n_filters=16, kernel_size=3, 
+#                  batchnorm=batchnorm, hidden_layer_activation=hidden_layer_activation,
+#                  output_layer_activation=None, pool_size=2, padding=padding)
 
-cnn.compile_model(loss=loss, optimizer=optimizer, metrics=metrics)
+summary = cnn.compile_model(loss=loss, optimizer=optimizer, metrics=metrics)
 
 ###############################################################################
 # Fit the model
