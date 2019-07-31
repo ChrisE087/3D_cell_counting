@@ -48,9 +48,10 @@ val_export_path = os.path.join('dataset', 'val')
 size_z = 32
 size_y = 32
 size_x = 32
-stride_z = 16
-stride_y = 16
-stride_x = 16
+stride_z = 32
+stride_y = 32
+stride_x = 32
+padding = 'VALID'
 
 # Specify the threshold for saving a patch. Patches in which the number of cells
 # is greater than the threshold are saved to disk.
@@ -131,20 +132,20 @@ for subdir1 in subdirs1:
                                     # the patches. So the patches are in dimension-order 'ZYX'
                                     patches_X_train = impro.gen_patches(session=session, data=X_train, patch_slices=size_z, patch_rows=size_y,
                                                             patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y,
-                                                            stride_cols=stride_x, input_dim_order='XYZ', padding='VALID') #ZYX
+                                                            stride_cols=stride_x, input_dim_order='XYZ', padding=padding) #ZYX
                                     
                                     patches_X_val = impro.gen_patches(session=session, data=X_val, patch_slices=size_z, patch_rows=size_y,
                                                             patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y,
-                                                            stride_cols=stride_x, input_dim_order='XYZ', padding='VALID') #ZYX
+                                                            stride_cols=stride_x, input_dim_order='XYZ', padding=padding) #ZYX
                                     
                                     print('Generating image patches for target data...')
                                     patches_Y_train = impro.gen_patches(session=session, data=Y_train, patch_slices=size_z, patch_rows=size_y,
                                                             patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y,
-                                                            stride_cols=stride_x, input_dim_order='XYZ', padding='VALID') #ZYX
+                                                            stride_cols=stride_x, input_dim_order='XYZ', padding=padding) #ZYX
                                     
                                     patches_Y_val = impro.gen_patches(session=session, data=Y_val, patch_slices=size_z, patch_rows=size_y,
                                                             patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y,
-                                                            stride_cols=stride_x, input_dim_order='XYZ', padding='VALID') #ZYX
+                                                            stride_cols=stride_x, input_dim_order='XYZ', padding=padding) #ZYX
                                     
                                     # Unscale the data and make a float32 dataset again
                                     print('Undo the workaround...')
