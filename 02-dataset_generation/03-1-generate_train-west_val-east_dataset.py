@@ -19,12 +19,12 @@ def divide_data(data, dim_order='XYZ'):
     if dim_order == 'ZYX':
         data = np.copy(data)
         data = np.transpose(data, axes=(2,1,0))#XYZ
-    z_start = 0
-    z_middle = int(np.floor(data.shape[2]/2))
-    z_end = data.shape[2]
-    north = data[0:, 0:, z_start:z_middle]
-    south = data[0:, 0:, z_middle+1:z_end]
-    return north, south
+    x_start = 0
+    x_middle = int(np.floor(data.shape[0]/2))
+    x_end = data.shape[0]
+    west = data[x_start:x_middle, 0:, 0:]
+    east = data[x_middle+1:x_end, 0:, 0:]
+    return west, east
     
 
 # Specify the path to the input dataset
@@ -51,6 +51,11 @@ size_x = 32
 stride_z = 32
 stride_y = 32
 stride_x = 32
+
+# padding='SAME' moves the position of the density-map relative to the spheroid
+# (Tensorflow-Bug?). When using 'SAME' padding, a workaround is calculated.
+# Because of that the generating of the image patches takes much more time! 
+# Hence use padding='VALID' whenever possible!
 padding = 'VALID'
 
 # Specify the threshold for saving a patch. Patches in which the number of cells
@@ -118,12 +123,13 @@ for subdir1 in subdirs1:
                                     # tensorflow method extract_volume_patches()
                                     # moves the input and target patches or volumes
                                     # relative to each other
-                                    print('Calculating the workaround...')
-                                    Y_train, max_train, min_train = impro.normalize_data(Y_train)
-                                    Y_train = impro.scale_data(Y_train, 65535)
-                                    
-                                    Y_val, max_val, min_val = impro.normalize_data(Y_val)
-                                    Y_val = impro.scale_data(Y_val, 65535)
+                                    if padding == 'SAME':
+                                        print('Calculating the workaround...')
+                                        Y_train, max_train, min_train = impro.normalize_data(Y_train)
+                                        Y_train = impro.scale_data(Y_train, 65535)
+                                        
+                                        Y_val, max_val, min_val = impro.normalize_data(Y_val)
+                                        Y_val = impro.scale_data(Y_val, 65535)
                                     
                                     print('Generating image patches for input data...')
                                     # Generate the image patches of dimension-order ZYX.
@@ -148,12 +154,13 @@ for subdir1 in subdirs1:
                                                             stride_cols=stride_x, input_dim_order='XYZ', padding=padding) #ZYX
                                     
                                     # Unscale the data and make a float32 dataset again
-                                    print('Undo the workaround...')
-                                    patches_Y_train = impro.unscale_data(patches_Y_train, 65535)
-                                    patches_Y_train = impro.unnormalize_data(patches_Y_train, max_train, min_train)
-                                    
-                                    patches_Y_val = impro.unscale_data(patches_Y_val, 65535)
-                                    patches_Y_val = impro.unnormalize_data(patches_Y_val, max_val, min_val)
+                                    if padding == 'SAME':
+                                        print('Undo the workaround...')
+                                        patches_Y_train = impro.unscale_data(patches_Y_train, 65535)
+                                        patches_Y_train = impro.unnormalize_data(patches_Y_train, max_train, min_train)
+                                        
+                                        patches_Y_val = impro.unscale_data(patches_Y_val, 65535)
+                                        patches_Y_val = impro.unnormalize_data(patches_Y_val, max_val, min_val)
                                     
                                     print('Saving training patches for ', spheroid, '...')
                                     # Create the training dataset
@@ -188,7 +195,7 @@ for subdir1 in subdirs1:
                                                     # Save the input and target data sample
                                                     sample_name_train = "%s_%s_%s-%08d.nrrd" % ('train', time_range, spheroid_name, p_train)
                                                     out_file_train = os.path.join(train_export_path, sample_name_train)
-                                                    header_train = {"sum": np.sum(patch_Y_train), "max_val": max_train, "min_val": min_train, "spacings": X_header.get('spacings'), "units": X_header.get('units')} # Add the scale factors to the header
+                                                    header_train = {"sum": np.sum(patch_Y_train), "pz": pz, "py": py, "px": px, "spacings": X_header.get('spacings'), "units": X_header.get('units')} # Add the scale factors to the header
                                                     nrrd.write(out_file_train, data=sample_train, header=header_train)
                                                 p_train = p_train+1
                                                 
@@ -225,6 +232,6 @@ for subdir1 in subdirs1:
                                                     # Save the input and target data sample
                                                     sample_name_val = "%s_%s_%s-%08d.nrrd" % ('val', time_range, spheroid_name, p_val)
                                                     out_file_val = os.path.join(val_export_path, sample_name_val)
-                                                    header_val = {"sum": np.sum(patch_Y_val), "max_val": max_val, "min_val": min_val, "spacings": X_header.get('spacings'), "units": X_header.get('units')} # Add the scale factors to the header
+                                                    header_val = {"sum": np.sum(patch_Y_val), "pz": pz, "py": py, "px": px, "spacings": X_header.get('spacings'), "units": X_header.get('units')} # Add the scale factors to the header
                                                     nrrd.write(out_file_val, data=sample_val, header=header_val)
                                                 p_val = p_val+1
