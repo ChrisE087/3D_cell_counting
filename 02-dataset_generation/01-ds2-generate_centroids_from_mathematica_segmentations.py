@@ -37,7 +37,7 @@ for subdir1 in subdirs1:
                 res_dir = os.path.abspath(os.path.join(spheroid_dir, subdir2))
                 seg_files = get_files_in_directory(res_dir)
                 for seg_file in seg_files:
-                    if spheroid_name in seg_file and 'NucleiBinary' in seg_file and seg_file.endswith('.nrrd'):
+                    if spheroid_name + '-NucleiBinary' in seg_file and seg_file.endswith('.nrrd'):
                         spheroid_file = os.path.abspath(spheroid_file)
                         seg_file = os.path.join(os.path.abspath(spheroid_dir), subdir2, seg_file)
                         #print('Corresponding Segmentation: ', seg_file)

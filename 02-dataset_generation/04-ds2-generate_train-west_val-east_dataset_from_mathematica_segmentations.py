@@ -32,7 +32,17 @@ path_to_data = os.path.join('..', '..', '..', 'Daten2')
 
 # Make a list of which spheroids from the dataset are chosen for the training 
 # and validation dataset
-dataset_list = [['HT29', 'C2-HT29_Glycerol_Ki67_06'],
+dataset_list = [['Fibroblasten', '1_draq5'],
+                ['Fibroblasten', '9_draq5'],
+                ['Hacat', 'C3-3'],
+                ['Hacat', 'C3-8'],
+                ['HT29', 'C2-HT29_Glycerol_Ki67_02'],
+                ['HT29', 'C2-HT29_Glycerol_Ki67_04'],
+                ['HTC8', 'C3-3'],
+                ['HTC8', 'C3-5'],
+                ['NPC1', 'C3-5'],
+                ['NPC1', 'C3-9'],
+                ['HT29', 'C2-HT29_Glycerol_Ki67_06'],
                 ['HT29', 'C2-HT29_Glycerol_Ki67_09'],
                 ['HTC8', 'C3-6r'],
                 ['HTC8', 'C3-10'],
@@ -42,18 +52,6 @@ dataset_list = [['HT29', 'C2-HT29_Glycerol_Ki67_06'],
                 ['Hacat', 'C3-9'],
                 ['NPC1', 'C3-2'],
                 ['NPC1', 'C3-10']]
-
-#['Fibroblasten', '1_draq5'],
-#                ['Fibroblasten', '9_draq5'],
-#                ['Hacat', 'C3-3'],
-#                ['Hacat', 'C3-8'],
-#                ['HT29', 'C2-HT29_Glycerol_Ki67_02'],
-#                ['HT29', 'C2-HT29_Glycerol_Ki67_04'],
-#                ['HTC8', 'C3-3'],
-#                ['HTC8', 'C3-5'],
-#                ['NPC1', 'C3-5'],
-#                ['NPC1', 'C3-9']
-
 
 
 # Specify the path where the generated dataset is saved
@@ -116,7 +114,7 @@ for subdir1 in subdirs1:
                         res_dir = os.path.abspath(os.path.join(spheroid_dir, subdir2))
                         seg_files = get_files_in_directory(res_dir)
                         for seg_file in seg_files:
-                            if spheroid_name in seg_file and 'gauss_centroids' in seg_file and seg_file.endswith('.nrrd'):
+                            if spheroid_name + '-gauss_centroids' in seg_file and seg_file.endswith('.nrrd'):
                                 spheroids_file = os.path.abspath(spheroid_file)
                                 centroids_file = os.path.join(os.path.abspath(spheroid_dir), subdir2, seg_file)
                                 
