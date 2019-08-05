@@ -4,7 +4,7 @@ from scipy import signal
 import math
 import tensorflow as tf
 
-def make_image_isotropic(simple_itk_image, interpolator, add_to_z=-1):
+def make_image_isotropic(simple_itk_image, interpolator, add_to_z=0, overwrite_num_z_slices=None):
     """
     This function assumes, that the Javabridge-VM is started and initialized
     with the bioformats jars:
@@ -21,6 +21,8 @@ def make_image_isotropic(simple_itk_image, interpolator, add_to_z=-1):
     interpolator (String): Interpolator which should be used (nearest_neighbor, 
     linear, bspline)
     add_to_z (int): Number of z-planes which is added to the calculated z-size
+    overwrite_num_z_slices (int): Set the number of z-planes to this value. Does'nt 
+    calculate the number of z-planes if this parameter is not none.
 
     Returns:
     resampled_image (SimpleITK Image): SimpleITK image, in which the voxel 
@@ -45,7 +47,10 @@ def make_image_isotropic(simple_itk_image, interpolator, add_to_z=-1):
     
     #new_size[2] = orig_size[2]*z_scale_factor
     #new_size[2] = orig_size[2]*z_scale_factor-1 # -1 because the OpenSegSPIM data is rounded
-    new_size[2] = orig_size[2]*z_scale_factor+add_to_z
+    if overwrite_num_z_slices == None:
+        new_size[2] = orig_size[2]*z_scale_factor+add_to_z
+    else:
+        new_size[2] = overwrite_num_z_slices
     
     #new_size = np.ceil(new_size).astype(np.int) #  Image dimensions are in integers
     new_size = np.asarray(new_size).tolist() # [int(s) for s in new_size]
@@ -110,7 +115,7 @@ def get_centroids(raw_data, spacings, excluded_volume_size):
     # Make a SimpleITK out of the numpy array
     image = sitk.GetImageFromArray(raw_data, isVector=False) # XYZ
     image.SetSpacing(spacings)
-    print(image.GetSpacing())
+    print('Spacings:', image.GetSpacing())
     
     # Get The Connected Components of the volume image. All intensities greater 
     # than 0 are taken into account for the labeling
