@@ -97,5 +97,5 @@ for subdir1 in subdirs1:
 ##%% Save the results in a table
 with open('predicted_cell_numbers_dataset2_mathematica_segmentations.txt','w') as file:
     for item in table:
-        line = "%s \t %s \t %s\n" %(item[0], item[1], item[2])
+        line = "%s \t %s \t %s \t %s \t %s\n" %(item[0], item[1], item[2], item[3], item[4])
         file.write(line)
