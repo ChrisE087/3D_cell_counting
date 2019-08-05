@@ -2,10 +2,7 @@ import sys
 sys.path.append("..")
 import numpy as np
 import matplotlib.pyplot as plt
-import keras
 import os
-import time
-import datetime
 import nrrd
 import tensorflow as tf
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
@@ -14,69 +11,64 @@ from tools import datagen
 from tools import image_processing as impro
 from tools import datatools
 
-# Read the data
-path_to_nuclei = os.path.join('..', '..', '..', 'Daten', '24h', 'untreated', 'C2-untreated_1.1.nrrd')
-data, header = nrrd.read(path_to_nuclei)
-data = data.astype(np.float32)
+#%%############################################################################
+# Specify the parameters
+###############################################################################
 
-plt.imshow(data[:,:,55])
+# Specify the patch sizes and strides in each direction (ZYX)
+patch_sizes = (32, 32, 32)
+strides = (32, 32, 32)
 
-# Load the CNN
-linear_output_scaling_factor = 409600000000
+# Specify the border around a patch in each dimension (ZYX), which is removed
+cut_border = None #(8,8,8)
+
+# Specify the padding which is used for the prediction of the patches
+padding = 'VALID'
+
+# Specify which model is used
+model_import_path = os.path.join(os.getcwd(), 'model_export', '2019-08-02_14-08-13_100000.0')
+
+# Specify the standardization mode
 standardization_mode = 'per_sample'
+
+# Specify the linear output scaling factor !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+linear_output_scaling_factor = 1e5#1e11#409600000000
+
+# Specify if the results are saved
+save_results = False
+
+#%%############################################################################
+# Read the data
+###############################################################################
+#category = '24h'
+#spheroid_name = 'C1-untreated_1.2.nrrd'
+#path_to_nuclei = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
+
+category = 'Fibroblasten'
+spheroid_name = '6_draq5.nrrd'
+path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
+
+#%%############################################################################
+# Initialize the CNN
+###############################################################################
 cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor, 
           standardization_mode=standardization_mode)
-import_path = os.path.join(os.getcwd(), 'model_export', '2019-07-16_22-36-09')
-cnn.load_model_json(import_path, 'model_json', 'model_weights')
+cnn.load_model_json(model_import_path, 'model_json', 'best_weights')
 
-# Generate image patches
-size_z = patch_slices = 32
-size_y = patch_rows = 32
-size_x = patch_cols = 32
-stride_z = stride_slices = 16
-stride_y = stride_rows = 16
-stride_x = stride_cols = 16
-session = tf.Session()
-patches = impro.gen_patches(session=session, data=data, patch_slices=size_z, patch_rows=size_y, 
-                            patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y, 
-                            stride_cols=stride_x, input_dim_order='XYZ', padding='VALID')
+#%%############################################################################
+# Predict the density-map
+###############################################################################
+spheroid_new, density_map, num_of_cells = cnn.predict_spheroid(path_to_spheroid=path_to_spheroid, patch_sizes=patch_sizes, 
+                                                               strides=strides, border=cut_border, padding=padding)
+plt.figure()
+plt.imshow(spheroid_new[int(spheroid_new.shape[0]/2),])
+plt.figure()
+plt.imshow(density_map[int(density_map.shape[0]/2),])
+print('Number of cells = ', num_of_cells)
 
-#p = patches[2,15,6,15,:,:]
-#plt.imshow(p)
-predictions = np.zeros_like(patches, dtype=np.float32)
-
-# Predict the density-patches
-for zslice in range(patches.shape[0]):
-    for row in range(patches.shape[1]):
-        for col in range(patches.shape[2]):
-            X = patches[zslice, row, col, :]
-            prediction = cnn.predict_sample(X)
-            predictions[zslice, row, col, :] = prediction
-
-## Restore the volumes from the patches
-nuclei = impro.restore_volume(patches=patches, border=(8,8,8), output_dim_order='XYZ')
-plt.imshow(nuclei[:,:,150])         
-density_map = impro.restore_volume(patches=predictions, border=(8,8,8), output_dim_order='XYZ')
-plt.imshow(density_map[:,:,150])
-#
-## Plot patch
-#pz = 0
-#py = 0
-#px = 0  
-#s = 12
-#
-#X = patches[pz, py, px, s, :, :]
-#y = predictions[pz, py, px, s, :, :]
-#plt.imshow(X)
-#plt.imshow(y)
-#
-## Print the sum of the density-patch
-#print (np.sum(y))
-#
-## Print the sum of the whole density-map
-print(np.sum(density_map))
-            
-
+#%%############################################################################
 # Save the results
-nrrd.write('nuclei.nrrd', nuclei)
-nrrd.write('density_map.nrrd', density_map)
+###############################################################################
+if save_results == True:
+    nrrd.write(category+'-'+spheroid_name+'.nrrd', spheroid_new)
+    nrrd.write(category+'-'+spheroid_name+'-density_map.nrrd', density_map)

@@ -35,20 +35,22 @@ path_to_testset = os.path.join('..', '..', '..', 'dataset', 'test')
 plt_hist = False
 data_shape = (32, 32, 32)
 channels = 1
+train_percentage = 1
+val_percentage = 0.5
 
 # Model Parameters
 input_shape = data_shape + (channels,)
 filters_exp = 4 # 2^filters_exp filters for the first layer
-n_filters = 16 # Number of filters for the first layer
+n_filters = 4 # Number of filters for the first layer
 kernel_size = (3, 3, 3)
 kernel_initializer = 'glorot_uniform'#'he_normal'
 pool_size = (2, 2, 2)
 hidden_layer_activation = 'relu'
 #hidden_layer_activation = keras.layers.LeakyReLU(alpha=0.2)
 alpha = 0.3 # Only necessary if hidden_layer_activation = 'leaky_relu' or 'elu'
-batchnorm_encoder = True
+batchnorm_encoder = False
 batchnorm_decoder = False
-regularization_rate = 0.001#None #0.001
+regularization_rate = None#0.001#None #0.001
 dropout_rate = None # 0.3
 output_layer_activation = None
 upsampling_method = 'Conv3DTranspose' #'Conv3DTranspose' or 'UpSampling3D'
@@ -59,15 +61,18 @@ train_shuffle = True
 val_shuffle = False
 standardization_mode = 'per_sample' # 'per_slice', 'per_sample' or 'per_batch'
 border = None # None or border in each dimension around the inner slice which should be extracted
-linear_output_scaling_factor = 1e11#1e12#409600000000
+#linear_output_scaling_factor = 1e11#1e12#409600000000
+linear_output_scaling_factor = 1e5#1e12#409600000000
 
 # Training parameters
 #learning_rate = 0.00001
+#learning_rate = 0.005
 learning_rate = 0.005
-epochs = 16
-batch_size = 64
+epochs = 128
+batch_size = 256
 optimizer = keras.optimizers.adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, 
                                   epsilon=None, decay=0.0, amsgrad=False)
+#optimizer = keras.optimizers.SGD(lr=learning_rate, momentum=0., decay=0., nesterov=False)
 evaluate = False
 
 #optimizer = keras.optimizers.SGD(lr=learning_rate)
@@ -101,10 +106,12 @@ callbacks = [tensor_board_cb, checkpoint]
 ###############################################################################
 
 train_list = os.listdir(path_to_trainset)
-val_list = os.listdir(path_to_valset)
+np.random.shuffle(train_list)
+train_list = train_list[0:int(train_percentage*len(train_list))]
 
+val_list = os.listdir(path_to_valset)
 np.random.shuffle(val_list)
-val_list = val_list[0:int(0.3*len(val_list))]
+val_list = val_list[0:int(val_percentage*len(val_list))]
 
 test_list = os.listdir(path_to_testset)
 
