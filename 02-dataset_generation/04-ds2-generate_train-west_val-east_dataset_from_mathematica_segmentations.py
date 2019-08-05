@@ -32,7 +32,16 @@ path_to_data = os.path.join('..', '..', '..', 'Daten2')
 
 # Make a list of which spheroids from the dataset are chosen for the training 
 # and validation dataset
-dataset_list = []
+dataset_list = [['HT29', 'C2-HT29_Glycerol_Ki67_06'],
+                ['HT29', 'C2-HT29_Glycerol_Ki67_09'],
+                ['HTC8', 'C3-6r'],
+                ['HTC8', 'C3-10'],
+                ['Fibroblasten', '4_draq5'],
+                ['Fibroblasten', '8_draq5'],
+                ['Hacat', 'C3-2'],
+                ['Hacat', 'C3-9'],
+                ['NPC1', 'C3-2'],
+                ['NPC1', 'C3-10']]
 
 #['Fibroblasten', '1_draq5'],
 #                ['Fibroblasten', '9_draq5'],

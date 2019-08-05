@@ -45,8 +45,8 @@ for subdir1 in subdirs1:
                         spacings = seg_header.get('spacings')
                         all_centroids, all_statistics = impro.get_centroids(seg_raw, spacings, 0.) # Unfiltered, only for documentation purposes
                         centroids, statistics = impro.get_centroids(seg_raw, spacings, 3.)
-#                        nrrd_centroids_file = os.path.join(res_dir, spheroid_name+'-centroids.nrrd')
-#                        nrrd.write(nrrd_centroids_file, data=centroids, header=seg_header, index_order='F')
+                        nrrd_centroids_file = os.path.join(res_dir, spheroid_name+'-centroids.nrrd')
+                        nrrd.write(nrrd_centroids_file, data=centroids, header=seg_header, index_order='F')
                         # Log the number of cells in a table
                         spheroid_title = res_dir.split(os.path.sep)[2] + '->' + spheroid_name
                         table.append([spheroid_title, np.sum(all_centroids), np.sum(centroids)])
