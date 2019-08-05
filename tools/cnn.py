@@ -586,6 +586,9 @@ class CNN():
         # Get the number of cells
         num_of_cells = np.sum(density_map)
         
+        session.close()
+        tf.reset_default_graph()
+        
         return spheroid_new, density_map, num_of_cells
                 
         
