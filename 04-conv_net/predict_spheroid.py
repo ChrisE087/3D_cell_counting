@@ -26,7 +26,7 @@ cut_border = None #(8,8,8)
 padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join(os.getcwd(), 'model_export', '2019-08-02_14-08-13_100000.0')
+model_import_path = os.path.join(os.getcwd(), 'model_export', 'BEST', '2019-08-02_14-08-13_100000.0')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -35,7 +35,7 @@ standardization_mode = 'per_sample'
 linear_output_scaling_factor = 1e5#1e11#409600000000
 
 # Specify if the results are saved
-save_results = False
+save_results = True
 
 #%%############################################################################
 # Read the data
@@ -45,7 +45,7 @@ save_results = False
 #path_to_nuclei = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
 
 category = 'Fibroblasten'
-spheroid_name = '6_draq5.nrrd'
+spheroid_name = '5_draq5.nrrd'
 path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
 
 #%%############################################################################
