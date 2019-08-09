@@ -12,6 +12,8 @@ import os
 import sys
 sys.path.append("..")
 from tools import image_processing as impro
+from keras import backend as K
+import cc3d
 
 class CNN():
     
@@ -21,220 +23,6 @@ class CNN():
         self.model = None
         self.linear_output_scaling_factor = linear_output_scaling_factor
         self.standardization_mode=standardization_mode
-        
-    def get_crop_shape(self, target, refer):
-        
-        # Nothing to do if the shapes are identical
-        if target.get_shape().as_list() == refer.get_shape().as_list():
-            print('nothing to crop')
-            return(0, 0), (0, 0), (0, 0)
-        else:
-            # Calculate the crop factor of the depth (4th dimension)
-            cd = np.abs(target.get_shape().as_list()[3] - refer.get_shape().as_list()[3])
-            assert(cd >= 0)
-            if cd % 2 != 0:
-                cd1, cd2 = int(cd/2), int(cd/2) + 1
-            else:
-                cd1, cd2 = int(cd/2), int(cd/2)
-            
-            # Calculate the crop factor of the width (3th dimension)
-            cw = np.abs(target.get_shape().as_list()[2] - refer.get_shape().as_list()[2])
-            assert (cw >= 0)
-            if cw % 2 != 0:
-                cw1, cw2 = int(cw/2), int(cw/2) + 1
-            else:
-                cw1, cw2 = int(cw/2), int(cw/2)
-            
-            # Calculate the crop factor of the height (2th dimension)
-            ch = np.abs(target.get_shape().as_list()[1] - refer.get_shape().as_list()[1])
-            assert (ch >= 0)
-            if ch % 2 != 0:
-                ch1, ch2 = int(ch/2), int(ch/2) + 1
-            else:
-                ch1, ch2 = int(ch/2), int(ch/2)
-        
-            return (ch1, ch2), (cw1, cw2), (cd1, cd2)
-        
-###############################################################################
-# First Net (works good)
-###############################################################################
-    
-#    def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
-#                  pool_size=(2, 2, 2), hidden_layer_activation='relu', 
-#                  output_layer_activation=None, padding='same'):
-#        
-#        inputs = Input((input_shape))
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(inputs)
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv1)
-#        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv1)
-#    
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool1)
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv2)
-#        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv2)
-#    
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool2)
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv3)
-#        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv3)
-#    
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool3)
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv4)
-#        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv4)
-#    
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool4)
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv5)
-#    
-#        up_conv5 = UpSampling3D(size=pool_size)(conv5)
-#        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
-#        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
-#        up6 = concatenate([up_conv5, crop_conv4], axis=-1)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up6)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv6)
-#    
-#        up_conv6 = UpSampling3D(size=pool_size)(conv6)
-#        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
-#        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
-#        up7 = concatenate([up_conv6, crop_conv3], axis=-1)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up7)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv7)
-#    
-#        up_conv7 = UpSampling3D(size=pool_size)(conv7)
-#        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
-#        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
-#        up8 = concatenate([up_conv7, crop_conv2], axis=-1)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up8)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv8)
-#    
-#        up_conv8 = UpSampling3D(size=pool_size)(conv8)
-#        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
-#        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
-#        up9 = concatenate([up_conv8, crop_conv1], axis=-1)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up9)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv9)
-#    
-#        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
-#                        activation=output_layer_activation)(conv9)
-#    
-#        self.model = Model(inputs=[inputs], outputs=[conv10])
-            
-###############################################################################
-# First Net with Conv3DTranspose (works also good)
-###############################################################################        
-#    def define_model(self, input_shape, filters_exp=5, kernel_size=(3, 3, 3), 
-#              pool_size=(2, 2, 2), hidden_layer_activation='relu', 
-#              output_layer_activation=None, padding='same'):
-#        
-#        inputs = Input((input_shape))
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(inputs)
-#        conv1 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv1)
-#        pool1 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv1)
-#    
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool1)
-#        conv2 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv2)
-#        pool2 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv2)
-#    
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool2)
-#        conv3 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv3)
-#        pool3 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv3)
-#    
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool3)
-#        conv4 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv4)
-#        pool4 = MaxPooling3D(pool_size=pool_size, strides=None, 
-#                             padding=padding)(conv4)
-#    
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(pool4)
-#        conv5 = Conv3D(filters=2**filters_exp+4, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv5)
-#    
-#        up_conv5 = Conv3DTranspose(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                             strides=pool_size, padding=padding, activation='relu',
-#                             use_bias=True,
-#                             bias_initializer='zeros', kernel_regularizer=None, 
-#                             bias_regularizer=None, activity_regularizer=None)(conv5)
-##        ch, cw, cd = self.get_crop_shape(up_conv5, conv4)
-##        crop_conv4 = Cropping3D(cropping=(ch, cw, cd))(conv4)
-#        up6 = concatenate([up_conv5, conv4], axis=-1)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up6)
-#        conv6 = Conv3D(filters=2**filters_exp+3, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv6)
-#    
-#        up_conv6 = Conv3DTranspose(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                     strides=pool_size, padding=padding, activation='relu', 
-#                     use_bias=True,
-#                     bias_initializer='zeros', kernel_regularizer=None, 
-#                     bias_regularizer=None, activity_regularizer=None)(conv6)
-##        ch, cw, cd = self.get_crop_shape(up_conv6, conv3)
-##        crop_conv3 = Cropping3D(cropping=(ch, cw, cd))(conv3)
-#        up7 = concatenate([up_conv6, conv3], axis=-1)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up7)
-#        conv7 = Conv3D(filters=2**filters_exp+2, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv7)
-#    
-#        up_conv7 = Conv3DTranspose(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                     strides=pool_size, padding=padding, activation='relu', 
-#                     use_bias=True,
-#                     bias_initializer='zeros', kernel_regularizer=None, 
-#                     bias_regularizer=None, activity_regularizer=None)(conv7)
-##        ch, cw, cd = self.get_crop_shape(up_conv7, conv2)
-##        crop_conv2 = Cropping3D(cropping=(ch, cw, cd))(conv2)
-#        up8 = concatenate([up_conv7, conv2], axis=-1)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up8)
-#        conv8 = Conv3D(filters=2**filters_exp+1, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv8)
-#    
-#        up_conv8 = Conv3DTranspose(filters=2**filters_exp, kernel_size=kernel_size, 
-#                     strides=pool_size, padding=padding, activation='relu', 
-#                     use_bias=True,
-#                     bias_initializer='zeros', kernel_regularizer=None, 
-#                     bias_regularizer=None, activity_regularizer=None)(conv8)
-##        ch, cw, cd = self.get_crop_shape(up_conv8, conv1)
-##        crop_conv1 = Cropping3D(cropping=(ch, cw, cd))(conv1)
-#        up9 = concatenate([up_conv8, conv1], axis=-1)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(up9)
-#        conv9 = Conv3D(filters=2**filters_exp, kernel_size=kernel_size, 
-#                       activation=hidden_layer_activation, padding=padding)(conv9)
-#    
-#        conv10 = Conv3D(filters=1, kernel_size=(1, 1, 1), 
-#                        activation=output_layer_activation)(conv9)
-#    
-#        self.model = Model(inputs=[inputs], outputs=[conv10])
         
         
     def conv3d_block(self, input_tensor, n_filters, kernel_size=(3, 3, 3),
@@ -556,7 +344,7 @@ class CNN():
         # load weights into new model
         self.model.load_weights(weights_import_path)
         
-    def predict_spheroid(self, path_to_spheroid, patch_sizes, strides, border=None, padding='VALID'):
+    def predict_density_map(self, path_to_spheroid, patch_sizes, strides, border=None, padding='VALID'):
         
         # Load the data
         spheroid, spheroid_header = nrrd.read(path_to_spheroid)
@@ -590,6 +378,132 @@ class CNN():
         tf.reset_default_graph()
         
         return spheroid_new, density_map, num_of_cells
+    
+    def threshold_filter(self, data, threshold):
+        data_thresh = np.copy(data)
+        data_thresh[data_thresh > threshold] = 1
+        data_thresh[data_thresh <= threshold] = 0
+        return data_thresh.astype(np.uint8)
+    
+    def predict_segmentation(self, path_to_spheroid, patch_sizes, strides, border=None, padding='VALID', threshold=None, label=False):
+        
+        # Load the data
+        spheroid, spheroid_header = nrrd.read(path_to_spheroid)
+        spheroid = spheroid.astype(np.float32)
+        
+        # Generate image patches
+        session = tf.Session()
+        patches_X = impro.gen_patches(session=session, data=spheroid, patch_slices=patch_sizes[0], patch_rows=patch_sizes[1], 
+                                    patch_cols=patch_sizes[2], stride_slices=strides[0], stride_rows=strides[1], 
+                                    stride_cols=strides[2], input_dim_order='XYZ', padding=padding)
+        
+        # Make a prediction for each patch and predict the density-patches
+        patches_y = np.zeros_like(patches_X, dtype=np.float32)
+
+        # Predict the density-patches
+        for zslice in range(patches_X.shape[0]):
+            for row in range(patches_X.shape[1]):
+                for col in range(patches_X.shape[2]):
+                    X = patches_X[zslice, row, col, :]
+                    y = self.predict_sample(X)
+                    patches_y[zslice, row, col, :] = y
+        
+        # Make a 3D image out of the patches
+        spheroid_new = impro.restore_volume(patches=patches_X, border=border, output_dim_order='XYZ')
+        segmentation = impro.restore_volume(patches=patches_y, border=border, output_dim_order='XYZ')
+        
+        session.close()
+        tf.reset_default_graph()
+        
+        segmentation_thresholded = None
+        
+        if threshold != None:
+            if threshold <= 1 and threshold >=0:
+                segmentation_thresholded = self.threshold_filter(segmentation, threshold)
+            else:
+                print('ERROR: Threshold must be in range 0 to 1.')
+                return
+            if label == True:
+                segmentation_thresholded = np.transpose(segmentation_thresholded, axes=(2,1,0)) #ZYX
+                segmentation_thresholded = cc3d.connected_components(segmentation_thresholded, connectivity=6)
+                segmentation_thresholded = np.transpose(segmentation_thresholded, axes=(2,1,0)) #XYZ
+                
+        if threshold == None and label == True:
+            print('ERROR: Only a binary image can be labelled, so threshold it first.')
+            return
+            
+        return spheroid_new, segmentation, segmentation_thresholded
+    
+###############################################################################
+# Custom Loss-Functions
+###############################################################################
+# Dice-Loss from: https://gist.github.com/wassname/7793e2058c5c9dacb5212c0ac0b18a8a
+def dice_coef(y_true, y_pred, smooth=1):
+    """
+    Dice = (2*|X & Y|)/ (|X|+ |Y|)
+         =  2*sum(|A*B|)/(sum(A^2)+sum(B^2))
+    ref: https://arxiv.org/pdf/1606.04797v1.pdf
+    """
+    intersection = K.sum(K.abs(y_true * y_pred), axis=-1)
+    return (2. * intersection + smooth) / (K.sum(K.square(y_true),-1) + K.sum(K.square(y_pred),-1) + smooth)
+
+def dice_coef_loss(y_true, y_pred):
+    return 1-dice_coef(y_true, y_pred)
+
+# Jaccard-Loss from: https://gist.github.com/wassname/f1452b748efcbeb4cb9b1d059dce6f96
+def jaccard_distance_loss(y_true, y_pred, smooth=100):
+    """
+    Jaccard = (|X & Y|)/ (|X|+ |Y| - |X & Y|)
+            = sum(|A*B|)/(sum(|A|)+sum(|B|)-sum(|A*B|))
+    
+    The jaccard distance loss is usefull for unbalanced datasets. This has been
+    shifted so it converges on 0 and is smoothed to avoid exploding or disapearing
+    gradient.
+    
+    Ref: https://en.wikipedia.org/wiki/Jaccard_index
+    
+    @url: https://gist.github.com/wassname/f1452b748efcbeb4cb9b1d059dce6f96
+    @author: wassname
+    """
+    intersection = K.sum(K.abs(y_true * y_pred), axis=-1)
+    sum_ = K.sum(K.abs(y_true) + K.abs(y_pred), axis=-1)
+    jac = (intersection + smooth) / (sum_ - intersection + smooth)
+    return (1 - jac) * smooth
+
+# Weighted Crossentropy from: https://lars76.github.io/neural-networks/object-detection/losses-for-segmentation/
+def weighted_cross_entropy(beta):
+  def convert_to_logits(y_pred):
+      # see https://github.com/tensorflow/tensorflow/blob/r1.10/tensorflow/python/keras/backend.py#L3525
+      y_pred = tf.clip_by_value(y_pred, tf.keras.backend.epsilon(), 1 - tf.keras.backend.epsilon())
+
+      return tf.log(y_pred / (1 - y_pred))
+
+  def loss(y_true, y_pred):
+    y_pred = convert_to_logits(y_pred)
+    loss = tf.nn.weighted_cross_entropy_with_logits(logits=y_pred, targets=y_true, pos_weight=beta)
+
+    return tf.reduce_mean(loss)
+
+  return loss
+
+# Balanced Crossentropy from: https://lars76.github.io/neural-networks/object-detection/losses-for-segmentation/
+def balanced_cross_entropy(beta):
+  def convert_to_logits(y_pred):
+      # see https://github.com/tensorflow/tensorflow/blob/r1.10/tensorflow/python/keras/backend.py#L3525
+      y_pred = tf.clip_by_value(y_pred, tf.keras.backend.epsilon(), 1 - tf.keras.backend.epsilon())
+
+      return tf.log(y_pred / (1 - y_pred))
+
+  def loss(y_true, y_pred):
+    y_pred = convert_to_logits(y_pred)
+    pos_weight = beta / (1 - beta)
+    loss = tf.nn.weighted_cross_entropy_with_logits(logits=y_pred, targets=y_true, pos_weight=pos_weight)
+
+    return tf.reduce_mean(loss * (1 - beta))
+
+  return loss
+
+
                 
         
     
