@@ -56,7 +56,7 @@ cnn.load_model_json(model_import_path, 'model_json', 'best_weights')
 # Predict the density-map
 ###############################################################################
 table = []
-table.append(['Spheroid', 'Ground-Truth number of cells (cell-volumes > 3um^3)', 'Number of cells (predicted)', 'Absolute difference', 'Percentual difference'])
+table.append(['Category', 'Spheroid', 'Ground-Truth number of cells (cell-volumes > 3um^3)', 'Number of cells (predicted)', 'Absolute difference', 'Percentual difference'])
 
 subdirs1 = get_immediate_subdirectories(path_to_data)
 for subdir1 in subdirs1:
@@ -83,7 +83,7 @@ for subdir1 in subdirs1:
                         num_of_cells_ground_truth = np.sum(centroids)
                         
                         # Predict the density-map
-                        spheroid_new, density_map, num_of_cells_predicted = cnn.predict_spheroid(path_to_spheroid=spheroid_file, patch_sizes=patch_sizes, 
+                        spheroid_new, density_map, num_of_cells_predicted = cnn.predict_density_map(path_to_spheroid=spheroid_file, patch_sizes=patch_sizes, 
                                                                                                  strides=strides, border=cut_border, padding=padding)
                         
                         # Calculate the difference from the ground-truth
@@ -91,11 +91,12 @@ for subdir1 in subdirs1:
                         perc_diff = 100-(num_of_cells_predicted*100/num_of_cells_ground_truth)
                         
                         # Log the number of cells in a table
-                        spheroid_title = res_dir.split(os.path.sep)[2] + '->' + spheroid_name
-                        table.append([spheroid_title, num_of_cells_ground_truth, num_of_cells_predicted, abs_diff, perc_diff])
+                        #spheroid_title = res_dir.split(os.path.sep)[2] + '->' + spheroid_name
+                        category = res_dir.split(os.path.sep)[2]
+                        table.append([category, spheroid_name, num_of_cells_ground_truth, num_of_cells_predicted, abs_diff, perc_diff])
                         
 ##%% Save the results in a table
 with open('predicted_cell_numbers_dataset2_mathematica_segmentations.txt','w') as file:
     for item in table:
-        line = "%s \t %s \t %s \t %s \t %s\n" %(item[0], item[1], item[2], item[3], item[4])
+        line = "%s \t %s \t %s \t %s \t %s \t %s\n" %(item[0], item[1], item[2], item[3], item[4], item[5])
         file.write(line)
