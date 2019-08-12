@@ -34,28 +34,28 @@ def divide_data(data, dim_order='XYZ'):
 path_to_data = os.path.join('..', '..', '..', 'Daten2')
 
 # Specify the suffix of the target-data
-target_suffix = 'gauss_centroids' # 'gauss_centroids' or 'NucleiBinary'
+target_suffix = 'NucleiBinary' # 'gauss_centroids' or 'NucleiBinary'
 
 # Make a list of which spheroids from the dataset are chosen for the training 
 # and validation dataset
-train_list = [####['Fibroblasten', '1_draq5'],
-              #['Fibroblasten', '4_draq5'],
+train_list = [['Fibroblasten', '1_draq5'],
+              ['Fibroblasten', '4_draq5'],
               #['Fibroblasten', '8_draq5'],
-              ####['Fibroblasten', '9_draq5'],
-              ####['Hacat', 'C3-2'],
-              #['Hacat', 'C3-3'],
+              ['Fibroblasten', '9_draq5'],
+              #['Hacat', 'C3-2'],
+              ['Hacat', 'C3-3'],
               #['Hacat', 'C3-8'],
               ['Hacat', 'C3-9'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_02'],
-              #['HT29', 'C2-HT29_Glycerol_Ki67_04'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_04'],
               #['HT29', 'C2-HT29_Glycerol_Ki67_06'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_09'],
               ['HTC8', 'C3-3'],
-              #['HTC8', 'C3-5'],
+              ['HTC8', 'C3-5'],
               #['HTC8', 'C3-6r'],
               ['HTC8', 'C3-10'],
               ['NPC1', 'C3-2'],
-              #['NPC1', 'C3-5'],
+              ['NPC1', 'C3-5'],
               #['NPC1', 'C3-6'],
               ['NPC1', 'C3-9']]
 
