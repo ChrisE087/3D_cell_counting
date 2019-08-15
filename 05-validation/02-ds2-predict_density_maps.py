@@ -93,7 +93,7 @@ for subdir1 in subdirs1:
                         num_of_cells_predicted = np.max(segmentation_thresholded)
                         
                         # Calculate the difference from the ground-truth
-                        abs_diff = num_of_cells_ground_truth - num_of_cells_predicted
+                        abs_diff = num_of_cells_predicted - num_of_cells_ground_truth
                         perc_diff = 100-(num_of_cells_predicted*100/num_of_cells_ground_truth)
                         
                         # Log the number of cells in a table
