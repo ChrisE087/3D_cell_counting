@@ -26,7 +26,7 @@ cut_border = None #(8,8,8)
 padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join(os.getcwd(), 'model_export', 'dataset1', '2019-08-09_12-07-12_100000.0_3_train_samples_fiji')
+model_import_path = os.path.join(os.getcwd(), 'model_export', 'dataset_mix', '2019-08-12_14-42-57_100000.0_train_samples_fiji_and_mathematica_densitymaps')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'

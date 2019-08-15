@@ -24,16 +24,16 @@ def threshold_filter(data, threshold):
 
 # Specify the patch sizes and strides in each direction (ZYX)
 patch_sizes = (32, 32, 32)
-strides = (16, 16, 16)
+strides = (32, 32, 32)
 
 # Specify the border around a patch in each dimension (ZYX), which is removed
-cut_border = (8,8,8)
+cut_border = None#(8,8,8)
 
 # Specify the padding which is used for the prediction of the patches
-padding = 'VALID'
+padding = 'SAME'
 
 # Specify which model is used
-model_import_path = os.path.join(os.getcwd(), 'model_export', 'dataset1', '2019-08-09_17-00-54_1_3_train_samples_fiji_SEGMENTATIONS')
+model_import_path = os.path.join(os.getcwd(), 'model_export', 'dataset_mix', '2019-08-13_22-25-12_1_3_train_samples_fiji_and_mathematica_segmentations_crossentropy_256_epochs')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -47,20 +47,20 @@ save_results = True
 #%%############################################################################
 # Read the data
 ###############################################################################
-category = '24h'
-spheroid_name = 'C2-untreated_1.2.nrrd'
-path_to_spheroid = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
+#category = '24h'
+#spheroid_name = 'C2-untreated_2.2.nrrd'
+#path_to_spheroid = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
 
-#category = 'Fibroblasten'
-#spheroid_name = '5_draq5.nrrd'
-#path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
+category = 'Fibroblasten'
+spheroid_name = '5_draq5.nrrd'
+path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
 
 #%%############################################################################
 # Initialize the CNN
 ###############################################################################
 cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor, 
           standardization_mode=standardization_mode)
-cnn.load_model_json(model_import_path, 'model_json', 'model_weights')
+cnn.load_model_json(model_import_path, 'model_json', 'best_weights')
 
 #%%############################################################################
 # Predict the density-map
@@ -72,9 +72,10 @@ plt.imshow(spheroid_new[int(spheroid_new.shape[0]/2),])
 plt.figure()
 plt.imshow(segmentation[int(segmentation.shape[0]/2),])
 #segmentation_thresholded = np.transpose(segmentation_thresholded, axes=(2,1,0))
+print(np.max(segmentation_thresholded))
 
 # Testing
-segmentation_thresholded = threshold_filter(segmentation, threshold=0.93)
+segmentation_thresholded = threshold_filter(segmentation, threshold=0.90)
 segmentation_thresholded = cc3d.connected_components(segmentation_thresholded, connectivity=6)
 print(np.max(segmentation_thresholded))
 
