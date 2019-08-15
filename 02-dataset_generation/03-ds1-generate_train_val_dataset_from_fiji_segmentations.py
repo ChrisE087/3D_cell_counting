@@ -34,40 +34,27 @@ def divide_data(data, dim_order='XYZ'):
 path_to_data = os.path.join('..', '..', '..', 'Daten')
 
 # Specify the filename of the target data
-target_filename = 'Nucleisegmentedfill2r.nrrd' # 'gauss_centroids_fiji_seg.nrrd' or 'gauss_centroids_opensegspim_seg.nrrd' (not recommended!) for density-patches or 'Nucleisegmentedfill2r.nrrd' for segmentation-patches
+target_filename = 'gauss_centroids_fiji_seg.nrrd' # 'gauss_centroids_fiji_seg.nrrd' or 'gauss_centroids_opensegspim_seg.nrrd' (not recommended!) for density-patches or 'Nucleisegmentedfill2r.nrrd' for segmentation-patches
 
 # Make a list of which spheroids from the dataset are chosen for the training 
 # and validation dataset
-train_list = [
+train_list = [['24h', 'C2-untreated_1.1'],
+              ['24h', 'C2-untreated_1.2'],
               ['24h', 'C2-untreated_2.1'],
+              ['24h', 'C2-untreated_2.2'],
+              ['24h', 'C2-untreated_2.3'],
+              ['24h', 'C2-untreated_3'],
+              ['48h', 'C2-untreated_1'],
+              ['48h', 'C2-untreated_2'],
               ['48h', 'C2-untreated_3'],
-              ['72h', 'C2-untreated_3']]
-#train_list = [#['24h', 'C1-untreated_1.1'],
-#              ['24h', 'C2-untreated_1.1'],
-#              #['24h', 'C1-untreated_2.1'],
-#              ['24h', 'C2-untreated_2.1'],
-#              #['24h', 'C1-untreated_3'],
-#              ['24h', 'C2-untreated_3'],
-#              #['48h', 'C1-untreated_1'],
-#              ['48h', 'C2-untreated_1'],
-#              #['48h', 'C1-untreated_3'],
-#              ['48h', 'C2-untreated_3'],
-#              #['48h', 'C1-untreated_4.1'],
-#              ['48h', 'C2-untreated_4.1'],
-#              #['72h', 'C1-untreated_1'],
-#              ['72h', 'C2-untreated_1'],
-#              #['72h', 'C1-untreated_3'],
-#              ['72h', 'C2-untreated_3'],
-#              #['72h', 'C1-untreated_4'],
-#              ['72h', 'C2-untreated_4']]
+              ['48h', 'C2-untreated_4.1'],
+              ['72h', 'C2-untreated_1'],
+              ['72h', 'C2-untreated_2'],
+              ['72h', 'C2-untreated_3'],
+              ['72h', 'C2-untreated_4']]
 
+# Deprecated
 val_list = []
-#val_list = [#['24h', 'C1-untreated_1.2'],
-#            ['24h', 'C2-untreated_1.2'],
-#            #['48h', 'C1-untreated_2'],
-#            ['48h', 'C2-untreated_2'],
-#            #['72h', 'C1-untreated_2'],
-#            ['72h', 'C2-untreated_2']]
 
 # Specify the path where the generated dataset is saved
 train_export_path = os.path.join('dataset', 'train')
@@ -220,10 +207,10 @@ for n in range(len(dataset_list)):
                                                         
                                                         # Generate the export path and filename
                                                         if n == 0:
-                                                            sample_name = "%s_%s_%s-%08d.nrrd" % ('train', time_range, spheroid_name, p)
+                                                            sample_name = "%s_%s-%08d.nrrd" % (time_range, spheroid_name, p)
                                                             export_path = train_export_path
                                                         else:
-                                                            sample_name = "%s_%s_%s-%08d.nrrd" % ('val', time_range, spheroid_name, p)
+                                                            sample_name = "%s_%s-%08d.nrrd" % (time_range, spheroid_name, p)
                                                             export_path = val_export_path
                 
                                                         # Save the input and target data sample

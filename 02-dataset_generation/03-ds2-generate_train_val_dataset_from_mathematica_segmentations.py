@@ -34,36 +34,56 @@ def divide_data(data, dim_order='XYZ'):
 path_to_data = os.path.join('..', '..', '..', 'Daten2')
 
 # Specify the suffix of the target-data
-target_suffix = 'NucleiBinary' # 'gauss_centroids' or 'NucleiBinary'
+target_suffix = 'gauss_centroids' # 'gauss_centroids' or 'NucleiBinary'
 
 # Make a list of which spheroids from the dataset are chosen for the training 
 # and validation dataset
 train_list = [['Fibroblasten', '1_draq5'],
+              ['Fibroblasten', '2_draq5'],
+              ['Fibroblasten', '3_draq5'],
               ['Fibroblasten', '4_draq5'],
-              #['Fibroblasten', '8_draq5'],
+              ['Fibroblasten', '5_draq5'],
+              ['Fibroblasten', '7_draq5'],
+              ['Fibroblasten', '8_draq5'],
               ['Fibroblasten', '9_draq5'],
-              #['Hacat', 'C3-2'],
+              ['Fibroblasten', '10_draq5'],
+              ['Hacat', 'C3-2'],
               ['Hacat', 'C3-3'],
-              #['Hacat', 'C3-8'],
+              ['Hacat', 'C3-4'],
+              ['Hacat', 'C3-5'],
+              ['Hacat', 'C3-6'],
+              ['Hacat', 'C3-7'],
+              ['Hacat', 'C3-8'],
               ['Hacat', 'C3-9'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_01'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_02'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_03'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_03-1'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_04'],
-              #['HT29', 'C2-HT29_Glycerol_Ki67_06'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_05'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_07'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_09'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_10'],
+              ['HTC8', 'C3-2a'],
               ['HTC8', 'C3-3'],
               ['HTC8', 'C3-5'],
-              #['HTC8', 'C3-6r'],
+              ['HTC8', 'C3-6l'],
+              ['HTC8', 'C3-6r'],
+              ['HTC8', 'C3-8_'],
+              ['HTC8', 'C3-8c'],
+              ['HTC8', 'C3-9'],
               ['HTC8', 'C3-10'],
               ['NPC1', 'C3-2'],
+              ['NPC1', 'C3-3'],
+              ['NPC1', 'C3-4'],
               ['NPC1', 'C3-5'],
-              #['NPC1', 'C3-6'],
+              ['NPC1', 'C3-6'],
+              ['NPC1', 'C3-7'],
+              ['NPC1', 'C3-8'],
               ['NPC1', 'C3-9']]
 
-val_list = [['Fibroblasten', '2_draq5'],
-            ['Hacat', 'C3-4'],
-            ['HT29', 'C2-HT29_Glycerol_Ki67_03'],
-            ['HTC8', 'C3-2a'],
-            ['NPC1', 'C3-4']]
+# Deprecated
+val_list = []
 
 # Specify the path where the generated dataset is saved
 train_export_path = os.path.join('dataset', 'train')
@@ -214,10 +234,10 @@ for n in range(len(dataset_list)):
                                                     
                                                     # Generate the export path and filename
                                                     if n == 0:
-                                                        sample_name = "%s_%s_%s-%08d.nrrd" % ('train', spheroid_category, spheroid_name, p)
+                                                        sample_name = "%s_%s-%08d.nrrd" % (spheroid_category, spheroid_name, p)
                                                         export_path = train_export_path
                                                     else:
-                                                        sample_name = "%s_%s_%s-%08d.nrrd" % ('val', spheroid_category, spheroid_name, p)
+                                                        sample_name = "%s_%s-%08d.nrrd" % (spheroid_category, spheroid_name, p)
                                                         export_path = val_export_path
             
                                                     # Save the input and target data sample

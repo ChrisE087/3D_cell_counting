@@ -51,7 +51,7 @@ for subdir1 in subdirs1:
                         spheroid_title = res_dir.split(os.path.sep)[2] + '->' + spheroid_name
                         table.append([spheroid_title, np.sum(all_centroids), np.sum(centroids)])
                         
-##%% Save the results in a table
+#%% Save the results in a table
 with open('cell_numbers_dataset2_mathematica_segmentations_filtered.txt','w') as file:
     for item in table:
         line = "%s \t %s \t %s\n" %(item[0], item[1], item[2])
