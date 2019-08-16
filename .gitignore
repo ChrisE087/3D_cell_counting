@@ -30,3 +30,4 @@ tools/ALT
 *.tiff
 *.pyc
 *.json
+*.csv
