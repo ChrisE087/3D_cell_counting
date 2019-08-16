@@ -22,9 +22,9 @@ for directory in os.listdir(path_to_data):
                     if(os.path.isdir(res_dir)):
                         if spheroid_name in subdir:
                             nrrd_file = os.path.join(data_dir, filename)
-                            seg_file = os.path.join(res_dir, 'centroids_opensegspim_seg.nrrd')
-                            print('Processing file: ', seg_file)
-                            centroids, header = nrrd.read(seg_file) #XYZ
+                            centroids_file = os.path.join(res_dir, 'centroids_opensegspim_seg.nrrd')
+                            print('Processing file: ', centroids_file)
+                            centroids, header = nrrd.read(centroids_file) #XYZ
                             gauss_centroids = impro.convolve_with_gauss(centroids, 50, 6)
                             nrrd_gauss_centroids_file = os.path.join(res_dir, 'gauss_centroids_opensegspim_seg.nrrd')
                             nrrd.write(nrrd_gauss_centroids_file, data=gauss_centroids, header=header, index_order='F')

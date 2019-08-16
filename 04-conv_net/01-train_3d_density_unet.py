@@ -21,7 +21,7 @@ def plot_dataset_histogram(path_to_dataset, data_list, hist_export_file=None):
         cell_number = np.sum(data[1])
         cell_numbers.append(cell_number)
         if cell_number > 25.0:
-            print(file)
+            print('Warning: Cell number in patch > 25 cells in ', file)
     plt.figure()
     plt.title('Distribution of cell numbers')
     plt.hist(cell_numbers, range=(0, 15), bins=50)
@@ -67,7 +67,7 @@ spheroid_names_dataset_all = {'untreated': ['24h_C2-untreated_1.1',
                           'C3-9'],
                  'HT29': ['C2-HT29_Glycerol_Ki67_01',
                           'C2-HT29_Glycerol_Ki67_02',
-                          'C2-HT29_Glycerol_Ki67_03',
+                          'C2-HT29_Glycerol_Ki67_03_',
                           'C2-HT29_Glycerol_Ki67_03-1',
                           'C2-HT29_Glycerol_Ki67_04',
                           'C2-HT29_Glycerol_Ki67_05',
@@ -233,6 +233,7 @@ val_files = val_files[0:int(val_percentage*len(val_files))]
 np.random.shuffle(test_files)
 test_files = test_files[0:int(test_percentage*len(test_files))]
 
+print('Starting...')
 #%%############################################################################
 # Plot the dataset distributions
 ###############################################################################
@@ -292,7 +293,8 @@ if evaluate == True:
     # Export the value of the test-loss
     test_loss_export_path = os.path.join(model_export_path, 'test_loss.txt')
     with open(test_loss_export_path,'w') as file:
-        file.write(test_loss)
+        for l in range(len(test_loss)):
+            file.write(str(test_loss[l])+'\n')
     
 
 
