@@ -574,3 +574,81 @@ def filter_segmentation(segmentation, spacings, excluded_volume_size):
     seg_filtered = np.transpose(seg_filtered, axes=(2,1,0)) # XYZ
     
     return seg_filtered
+
+def colocalize(segmentation, colocalization_volume, colocalization_threshold=10.0, make_colocalization_segmentation=False):
+    """
+    Given a segmentation, this method localizes a corresponding signal in a 
+    second volume within the actual segmentation with the label l, counts the
+    number of colocalized segmentations, calculates statistics and returns
+    a volume, where all segmentations are set to background (label = 0), if
+    no colocalization was found.
+    
+    Parameters:
+    segmentation (Numpy Array): 3D Numpy array of labelled 3D cell segmentations.
+    colocalization_volume (Numpy Array): 3D Numpy array of the same dimensions
+    as the segmentation. In this volume is looked up, if a signal is found 
+    at all coordinates of the actual segmentation with the label l.
+    colocalization_threshold (float): Threshold from which the mean of all 
+    signal values in the colocalization channel is interpreted interpreted
+    as a signal in the colocalization_volume.
+    make_colocalization_segmentation (boolean): If true, a volume of the same
+    dimensions as the segmentation is returned, where all segmentations are 
+    set to background (label = 0), if no colocalization was found. If false,
+    None is returned.
+    
+    
+    Returns:
+    result_table (List of lists): Result of the colocalization, where for each
+    label is deposited, if a colocalization was found. Furthermore, some
+    statistics of all to the segmentation corresponding values in the 
+    colocalization channel are calculated (mean, standard-deviation and variance)
+    """
+    
+    num_of_colocalized_cells = 0
+    
+    # Check if the dimensions are the same
+    if segmentation.shape != colocalization_volume.shape:
+        print('Aborting. Segmentation and Colocalization channel have different shapes.')
+        return
+    
+    # Check how many different labels there are in the segmentation -> get the labels
+    labels = np.unique(segmentation)
+    
+    # Get the number of cells in the spheroid -> number of different labels
+    num_of_cells = len(labels)
+    
+    # Make an array, where all labels are recorded, if the colocalization has 
+    # found a signal in c1 on the segmentation with the label l. All other labels
+    # are set to zero
+    if make_colocalization_segmentation == True:
+        colocalization_segmentation = np.copy(segmentation)
+    else:
+        colocalization_segmentation = None
+    
+    # Record the mean and label in a table
+    result_table = []
+    result_table.append(['Label', 'Colocalization', 'Mean', 'Standard-deviation', 'Variance'])
+    
+    # Iterate over all n labels
+    for n in range(len(labels)):
+        # Get the label
+        l = labels[n]
+        
+        # Make a boolean mask of c2 -> All values that equal to the actual label 
+        # in c2 are true (->mask). Then select all values in c1, where the mask is True
+        values = colocalization_volume[segmentation == l]
+        
+        # Calculate the statistics over these values
+        mean = np.mean(values)
+        std = np.std(values)
+        var = np.var(values)
+        
+        # Set the label to zero, if no colocalization was found
+        if mean < colocalization_threshold:
+            if make_colocalization_segmentation == True:
+                colocalization_segmentation[segmentation == l] = 0
+            result_table.append([l, 'False', mean, std, var])
+        else:
+            num_of_colocalized_cells = num_of_colocalized_cells + 1
+            result_table.append([l, 'True', mean, std, var])       
+    return result_table, num_of_cells, num_of_colocalized_cells, colocalization_segmentation
