@@ -69,4 +69,4 @@ plt.imshow(c2[:,:,plt_z])
 plt.imshow(colocalized_cells[:,:,plt_z])
 
 
-#nrrd.write('proliferating_nucleis.nrrd', data=colocalized_cells, header=c1_header)
+nrrd.write('proliferating_nucleis.nrrd', data=colocalized_cells, header=c1_header)
