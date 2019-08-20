@@ -344,14 +344,15 @@ class CNN():
         # load weights into new model
         self.model.load_weights(weights_import_path)
         
-    def predict_density_map(self, path_to_spheroid, patch_sizes, strides, border=None, padding='VALID'):
+    def predict_density_map(self, path_to_spheroid, patch_sizes, strides, border=None, padding='VALID', session=None):
         
         # Load the data
         spheroid, spheroid_header = nrrd.read(path_to_spheroid)
         spheroid = spheroid.astype(np.float32)
         
         # Generate image patches
-        session = tf.Session()
+        if session == None:
+            session = tf.Session()
         patches_X = impro.gen_patches(session=session, data=spheroid, patch_slices=patch_sizes[0], patch_rows=patch_sizes[1], 
                                     patch_cols=patch_sizes[2], stride_slices=strides[0], stride_rows=strides[1], 
                                     stride_cols=strides[2], input_dim_order='XYZ', padding=padding)
@@ -374,8 +375,9 @@ class CNN():
         # Get the number of cells
         num_of_cells = np.sum(density_map)
         
-        session.close()
-        tf.reset_default_graph()
+        if session == None:
+            session.close()
+            tf.reset_default_graph()
         
         return spheroid_new, density_map, num_of_cells
     
@@ -385,14 +387,15 @@ class CNN():
         data_thresh[data_thresh <= threshold] = 0
         return data_thresh.astype(np.uint8)
     
-    def predict_segmentation(self, path_to_spheroid, patch_sizes, strides, border=None, padding='VALID', threshold=None, label=False):
+    def predict_segmentation(self, path_to_spheroid, patch_sizes, strides, border=None, padding='VALID', threshold=None, label=False, session=None):
         
         # Load the data
         spheroid, spheroid_header = nrrd.read(path_to_spheroid)
         spheroid = spheroid.astype(np.float32)
         
         # Generate image patches
-        session = tf.Session()
+        if session == None:
+            session = tf.Session()
         patches_X = impro.gen_patches(session=session, data=spheroid, patch_slices=patch_sizes[0], patch_rows=patch_sizes[1], 
                                     patch_cols=patch_sizes[2], stride_slices=strides[0], stride_rows=strides[1], 
                                     stride_cols=strides[2], input_dim_order='XYZ', padding=padding)
@@ -412,8 +415,9 @@ class CNN():
         spheroid_new = impro.restore_volume(patches=patches_X, border=border, output_dim_order='XYZ')
         segmentation = impro.restore_volume(patches=patches_y, border=border, output_dim_order='XYZ')
         
-        session.close()
-        tf.reset_default_graph()
+        if session == None:
+            session.close()
+            tf.reset_default_graph()
         
         segmentation_thresholded = None
         
