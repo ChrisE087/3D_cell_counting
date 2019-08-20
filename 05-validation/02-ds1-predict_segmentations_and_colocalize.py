@@ -49,7 +49,7 @@ cnn = CNN(linear_output_scaling_factor=linear_output_scaling_factor,
 cnn.load_model_json(model_import_path, 'model_json', 'best_weights')
 
 table = []
-table.append(['Cultivation-period', 'Spheroid', 'Ground-Truth number of cells (cell-volumes > 3um^3)', 'Number of cells (predicted)', 'Absolute difference', 'Percentual difference', 'Number of colocalized cells'])
+table.append(['Cultivation-period', 'Spheroid', 'Ground-Truth number of cells (cell-volumes > 3um^3)', 'Number of cells (predicted)', 'Absolute difference', 'Percentual difference', 'Number of colocalized cells', 'Percentual number of colocalized cells'])
 
 for directory in os.listdir(path_to_data):
     data_dir = os.path.join(path_to_data, directory, 'untreated')
@@ -116,6 +116,8 @@ for directory in os.listdir(path_to_data):
                             print('Calculating the colocalization between ', spheroid_file, ' and ', colocalization_file)
                             result_table, num_of_cells, num_of_colocalized_cells, colocalization_segmentation = impro.colocalize(segmentation=segmentation_thresholded, colocalization_volume=colocalization_restored, colocalization_threshold=colocalization_threshold, make_colocalization_segmentation=True)
                             
+                            perc_num_of_colocalized_cells = num_of_colocalized_cells*100/num_of_cells_predicted
+                            
                             # Export the results
                             export_suffix = colocalization_filename[2:-5]
                              
@@ -145,9 +147,9 @@ for directory in os.listdir(path_to_data):
                             # Log the number of cells in a table
                             #spheroid_title = res_dir.split(os.path.sep)[2] + '->' + spheroid_name
                             cultivation_period = res_dir.split(os.path.sep)[2]
-                            table.append([cultivation_period, spheroid_name, num_of_cells_ground_truth, num_of_cells_predicted, abs_diff, perc_diff, num_of_colocalized_cells])
+                            table.append([cultivation_period, spheroid_name, num_of_cells_ground_truth, num_of_cells_predicted, abs_diff, perc_diff, num_of_colocalized_cells, perc_num_of_colocalized_cells])
 
-with open('cell_numbers_dataset1_fiji_segmentations_filtered.txt','w') as file:
+with open(os.path.join(path_to_colocalization_results, 'cell_numbers_dataset1_fiji_segmentations_filtered.txt'),'w') as file:
     for item in table:
-        line = "%s \t %s \t %s \t %s \t %s \t %s\n" %(item[0], item[1], item[2], item[3], item[4], item[5], item[6])
+        line = "%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n" %(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7])
         file.write(line)
