@@ -125,9 +125,9 @@ test_spheroids = {'untreated': [ '24h_C2-untreated_2.2',
                                 '72h_C2-untreated_4']}
     
 # Specify the number of spheroids per dataset
-num_train_spheroids = 4
-num_val_spheroids = 1
-num_test_spheroids = 1
+num_train_spheroids = 8
+num_val_spheroids = 3
+num_test_spheroids = 3
 
 
 # Dataset Parameters
@@ -205,7 +205,7 @@ callbacks = [tensor_board_cb, checkpoint]
 # Prepare the training data
 ###############################################################################
 # Example if you want to choose the spheroids used for train val and testing randomized
-train_files, val_files, test_files, dataset_table = datatools.get_datasets(path_to_dataset=path_to_dataset, spheroid_names=spheroid_names_dataset_all, 
+train_files, val_files, test_files, dataset_table = datatools.get_datasets(path_to_dataset=path_to_dataset, spheroid_names=spheroid_names_dataset_1, 
                                                                  num_train_spheroids=num_train_spheroids, num_val_spheroids=num_val_spheroids, 
                                                                  num_test_spheroids=num_test_spheroids, train_spheroids=None, 
                                                                  val_spheroids=None, test_spheroids=None)
