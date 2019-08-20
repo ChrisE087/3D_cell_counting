@@ -34,34 +34,30 @@ def divide_data(data, dim_order='XYZ'):
 path_to_data = os.path.join('..', '..', '..', 'Daten')
 
 # Specify the filename of the target data
-target_filename = 'gauss_centroids_fiji_seg.nrrd' # 'gauss_centroids_fiji_seg.nrrd' or 'gauss_centroids_opensegspim_seg.nrrd' (not recommended!) for density-patches or 'Nucleisegmentedfill2r.nrrd' for segmentation-patches
+target_filename = 'Nucleisegmentedfill2r_labelled_filtered.nrrd' # 'gauss_centroids_fiji_seg.nrrd' or 'gauss_centroids_opensegspim_seg.nrrd' (not recommended!) for density-patches or 'Nucleisegmentedfill2r.nrrd', 'Nucleisegmentedfill2r_labelled', 'Nucleisegmentedfill2r_labelled_filtered' for segmentation-patches
 
 # Make a list of which spheroids from the dataset are chosen for the training 
 # and validation dataset
-train_list = [
+train_list = [['24h', 'C2-untreated_1.1'],
+              ['24h', 'C2-untreated_1.2'],
+              ['24h', 'C2-untreated_2.1'],
               ['24h', 'C2-untreated_2.2'],
               ['24h', 'C2-untreated_2.3'],
-              ]
-#train_list = [['24h', 'C2-untreated_1.1'],
-#              ['24h', 'C2-untreated_1.2'],
-#              ['24h', 'C2-untreated_2.1'],
-#              ['24h', 'C2-untreated_2.2'],
-#              ['24h', 'C2-untreated_2.3'],
-#              ['24h', 'C2-untreated_3'],
-#              ['48h', 'C2-untreated_1'],
-#              ['48h', 'C2-untreated_2'],
-#              ['48h', 'C2-untreated_3'],
-#              ['48h', 'C2-untreated_4.1'],
-#              ['72h', 'C2-untreated_1'],
-#              ['72h', 'C2-untreated_2'],
-#              ['72h', 'C2-untreated_3'],
-#              ['72h', 'C2-untreated_4']]
+              ['24h', 'C2-untreated_3'],
+              ['48h', 'C2-untreated_1'],
+              ['48h', 'C2-untreated_2'],
+              ['48h', 'C2-untreated_3'],
+              ['48h', 'C2-untreated_4.1'],
+              ['72h', 'C2-untreated_1'],
+              ['72h', 'C2-untreated_2'],
+              ['72h', 'C2-untreated_3'],
+              ['72h', 'C2-untreated_4']]
 
 # Deprecated
 val_list = []
 
 # Specify the path where the generated dataset is saved
-train_export_path = os.path.join('dataset', 'train2')
+train_export_path = os.path.join('dataset', 'train')
 val_export_path = os.path.join('dataset', 'val')
 
 # Specify the size of each patch
@@ -103,7 +99,6 @@ if not os.path.exists(val_export_path):
 # Generate the dataset
 ###############################################################################
 dataset_list = [train_list, val_list]
-session = tf.Session()
 for n in range(len(dataset_list)):
     data_list = dataset_list[n]
     if n == 0:
@@ -146,6 +141,13 @@ for n in range(len(dataset_list)):
                                         X, X_header = nrrd.read(spheroid_file) #XYZ
                                         y, y_header = nrrd.read(target_file) #XYZ
                                         
+                                        # Make the segmentation binary and bring it into range 0 to 1
+                                        if target_filename == 'Nucleisegmentedfill2r.nrrd' or target_filename == 'Nucleisegmentedfill.nrrd':
+                                            y = y / 255
+                                        if target_filename == 'Nucleisegmentedfill2r_labelled_filtered.nrrd' or target_filename == 'Nucleisegmentedfill2r_labelled.nrrd':
+                                            y[y > 0] = 1
+                                            y = y.astype(np.uint8)
+                                        
                                         # WORKAROUND: Scale the target data (Normalize and
                                         # scale with factor) and make a unit16
                                         # dataset, because when using float32 or float64 the
@@ -162,6 +164,7 @@ for n in range(len(dataset_list)):
                                         # With the parameter 'input_dim_order='XYZ' the
                                         # input data 'X' is transposed to 'ZYX' before generating
                                         # the patches. So the patches are in dimension-order 'ZYX'
+                                        session = tf.Session()
                                         patches_X = impro.gen_patches(session=session, data=X, patch_slices=size_z, patch_rows=size_y,
                                                                 patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y,
                                                                 stride_cols=stride_x, input_dim_order='XYZ', padding=padding) #ZYX
@@ -170,6 +173,8 @@ for n in range(len(dataset_list)):
                                         patches_y = impro.gen_patches(session=session, data=y, patch_slices=size_z, patch_rows=size_y,
                                                                 patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y,
                                                                 stride_cols=stride_x, input_dim_order='XYZ', padding=padding) #ZYX
+                                        session.close()
+                                        tf.reset_default_graph()
                                         
                                         # Unscale the data and make a float32 dataset again
                                         if padding == 'SAME':
@@ -198,9 +203,6 @@ for n in range(len(dataset_list)):
                                                     # Read a sample out of the input and target data
                                                     patch_X = patches_X[pz,py,px,:,:,:]
                                                     patch_y = patches_y[pz,py,px,:,:,:]
-                                                    
-                                                    if target_filename == 'Nucleisegmentedfill2r.nrrd' or target_filename == 'Nucleisegmentedfill.nrrd':
-                                                        patch_y = patch_y / 255
                 
                                                     # Don't save the paddings
                                                     if(np.sum(patch_y) > thresh):

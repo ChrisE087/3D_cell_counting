@@ -34,7 +34,7 @@ def divide_data(data, dim_order='XYZ'):
 path_to_data = os.path.join('..', '..', '..', 'Daten2')
 
 # Specify the suffix of the target-data
-target_suffix = 'NucleiBinary' # 'gauss_centroids' or 'NucleiBinary'
+target_suffix = 'NucleiBinary' # 'gauss_centroids', 'NucleiBinary' or 'NucleiBinary_filtered'
 
 # Make a list of which spheroids from the dataset are chosen for the training 
 # and validation dataset
@@ -170,6 +170,10 @@ for n in range(len(dataset_list)):
                                     X, X_header = nrrd.read(spheroid_file) #XYZ
                                     y, y_header = nrrd.read(target_file) #XYZ
                                     
+                                    # Make the segmentation binary and bring it into range 0 to 1
+                                    if target_suffix == 'NucleiBinary' or target_suffix == 'NucleiBinary_filtered':
+                                        y[y > 0] = 1
+                                    
                                     # WORKAROUND: Scale the target data (Normalize and
                                     # scale with factor) and make a unit16
                                     # dataset, because when using float32 or float64 the
@@ -221,10 +225,6 @@ for n in range(len(dataset_list)):
                                                 # Read a sample out of the input and target data
                                                 patch_X = patches_X[pz,py,px,:,:,:]
                                                 patch_y = patches_y[pz,py,px,:,:,:]
-                                                
-                                                # Make the segmentation binary and bring it into range 0 to 1
-                                                if target_suffix == 'NucleiBinary':
-                                                    patch_y[patch_y > 0] = 1
             
                                                 # Don't save the paddings
                                                 if(np.sum(patch_y) > thresh):
