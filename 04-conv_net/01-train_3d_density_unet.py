@@ -34,7 +34,8 @@ def plot_dataset_histogram(path_to_dataset, data_list, hist_export_file=None):
 ###############################################################################
 # Dictionary for choosing random spheroids for training out of the following dataset
 # Comment single spheroids if you want to use a subset
-spheroid_names_dataset_all = {'untreated': ['24h_C2-untreated_1.1',
+spheroid_names_dataset_all = {
+        'untreated': ['24h_C2-untreated_1.1',
                                 '24h_C2-untreated_1.2',
                                 '24h_C2-untreated_2.1',
                                 '24h_C2-untreated_2.2',
@@ -48,49 +49,49 @@ spheroid_names_dataset_all = {'untreated': ['24h_C2-untreated_1.1',
                                 '72h_C2-untreated_2',
                                 '72h_C2-untreated_3',
                                 '72h_C2-untreated_4'],
-                 'Fibroblasten': ['1_draq5',
-                                  '2_draq5',
-                                  '3_draq5',
-                                  '4_draq5',
-                                  '5_draq5',
-                                  '7_draq5',
-                                  '8_draq5',
-                                  '9_draq5',
-                                  '10_draq5'],
-                 'Hacat': ['C3-2',
-                          'C3-3',
-                          'C3-4',
-                          'C3-5',
-                          'C3-6',
-                          'C3-7',
-                          'C3-8',
-                          'C3-9'],
-                 'HT29': ['C2-HT29_Glycerol_Ki67_01',
-                          'C2-HT29_Glycerol_Ki67_02',
-                          'C2-HT29_Glycerol_Ki67_03_',
-                          'C2-HT29_Glycerol_Ki67_03-1',
-                          'C2-HT29_Glycerol_Ki67_04',
-                          'C2-HT29_Glycerol_Ki67_05',
-                          'C2-HT29_Glycerol_Ki67_07',
-                          'C2-HT29_Glycerol_Ki67_09',
-                          'C2-HT29_Glycerol_Ki67_10'],  
-                 'HTC8': ['C3-2a',
-                          'C3-3',
-                          'C3-5',
-                          'C3-6l',
-                          'C3-6r',
-                          'C3-8_',
-                          'C3-8c',
-                          'C3-9',
-                          'C3-10'],
-                 'NPC1': ['C3-2',
-                          'C3-3',
-                          'C3-4',
-                          'C3-5',
-                          'C3-6',
-                          'C3-7',
-                          'C3-8',
-                          'C3-9']}
+         'Fibroblasten': ['1_draq5',
+                          '2_draq5',
+                          '3_draq5',
+                          '4_draq5',
+                          '5_draq5',
+                          '7_draq5',
+                          '8_draq5',
+                          '9_draq5',
+                          '10_draq5'],
+         'Hacat': ['C3-2',
+                  'C3-3',
+                  'C3-4',
+                  'C3-5',
+                  'C3-6',
+                  'C3-7',
+                  'C3-8',
+                  'C3-9'],
+         'HT29': ['C2-HT29_Glycerol_Ki67_01',
+                  'C2-HT29_Glycerol_Ki67_02',
+                  'C2-HT29_Glycerol_Ki67_03_',
+                  'C2-HT29_Glycerol_Ki67_03-1',
+                  'C2-HT29_Glycerol_Ki67_04',
+                  'C2-HT29_Glycerol_Ki67_05',
+                  'C2-HT29_Glycerol_Ki67_07',
+                  'C2-HT29_Glycerol_Ki67_09',
+                  'C2-HT29_Glycerol_Ki67_10'],  
+         'HTC8': ['C3-2a',
+                  'C3-3',
+                  'C3-5',
+                  'C3-6l',
+                  'C3-6r',
+                  'C3-8_',
+                  'C3-8c',
+                  'C3-9',
+                  'C3-10'],
+         'NPC1': ['C3-2',
+                  'C3-3',
+                  'C3-4',
+                  'C3-5',
+                  'C3-6',
+                  'C3-7',
+                  'C3-8',
+                  'C3-9']}
                  
 # Choose if you want to choose spheroids only from dataset 1
 spheroid_names_dataset_1 = {'untreated': ['24h_C2-untreated_1.1',
@@ -129,9 +130,8 @@ num_train_spheroids = 8
 num_val_spheroids = 3
 num_test_spheroids = 3
 
-
 # Dataset Parameters
-path_to_dataset = os.path.join('..', '..', '..', 'Datensaetze', 'dataset_density-maps_fiji_and_mathematica')
+path_to_dataset = os.path.join('..', '..', '..', 'Datensaetze', 'dataset_density-maps_fiji_and_mathematica_filtered')
 plt_hist = True
 data_shape = (32, 32, 32)
 channels = 1
@@ -287,8 +287,9 @@ X_test_data, y_test_data = datatools.load_data(path_to_dataset=path_to_dataset,
                                                border=border)
 if evaluate == True:
     # Evaluate the model on the test-data
-    test_loss = cnn.evaluate_model(X_test=np.expand_dims(X_test_data, axis=4), 
-                       y_test=np.expand_dims(y_test_data, axis=4), batch_size=batch_size)
+    
+    test_loss = cnn.evaluate_model(X_test=X_test_data, y_test=y_test_data, batch_size=batch_size)
+    print(test_loss)
     
     # Export the value of the test-loss
     test_loss_export_path = os.path.join(model_export_path, 'test_loss.txt')

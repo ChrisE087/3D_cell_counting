@@ -125,13 +125,13 @@ test_spheroids = {'untreated': [ '24h_C2-untreated_2.2',
                                 '72h_C2-untreated_4']}
     
 # Specify the number of spheroids per dataset
-num_train_spheroids = 4
-num_val_spheroids = 1
-num_test_spheroids = 1
+num_train_spheroids = 8
+num_val_spheroids = 3
+num_test_spheroids = 3
 
 
 # Dataset Parameters
-path_to_dataset = os.path.join('..', '..', '..', 'Datensaetze', 'dataset_segmentation_fiji_and_mathematica')
+path_to_dataset = os.path.join('..', '..', '..', 'Datensaetze', 'dataset_segmentation_fiji_and_mathematica_filtered')
 plt_hist = False
 data_shape = (32, 32, 32)
 channels = 1
@@ -205,7 +205,7 @@ callbacks = [tensor_board_cb, checkpoint]
 # Prepare the training data
 ###############################################################################
 # Example if you want to choose the spheroids used for train val and testing randomized
-train_files, val_files, test_files, dataset_table = datatools.get_datasets(path_to_dataset=path_to_dataset, spheroid_names=spheroid_names_dataset_all, 
+train_files, val_files, test_files, dataset_table = datatools.get_datasets(path_to_dataset=path_to_dataset, spheroid_names=spheroid_names_dataset_1, 
                                                                  num_train_spheroids=num_train_spheroids, num_val_spheroids=num_val_spheroids, 
                                                                  num_test_spheroids=num_test_spheroids, train_spheroids=None, 
                                                                  val_spheroids=None, test_spheroids=None)
@@ -285,15 +285,15 @@ X_test_data, y_test_data = datatools.load_data(path_to_dataset=path_to_dataset,
                                                border=border)
 if evaluate == True:
     # Evaluate the model on the test-data
-    test_loss = cnn.evaluate_model(X_test=np.expand_dims(X_test_data, axis=4), 
-                       y_test=np.expand_dims(y_test_data, axis=4), batch_size=batch_size)
+    
+    test_loss = cnn.evaluate_model(X_test=X_test_data, y_test=y_test_data, batch_size=batch_size)
     print(test_loss)
     
     # Export the value of the test-loss
     test_loss_export_path = os.path.join(model_export_path, 'test_loss.txt')
     with open(test_loss_export_path,'w') as file:
-        file.write(test_loss)
-
+        for l in range(len(test_loss)):
+            file.write(str(test_loss[l])+'\n')
 
 ###############################################################################
 # Save the model
