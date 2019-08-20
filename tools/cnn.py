@@ -258,7 +258,7 @@ class CNN():
         return history
         
     def evaluate_model(self, X_test, y_test, batch_size):
-
+        
         # Standardize the model input
         if self.standardization_mode == 'per_slice' or \
         self.standardization_mode == 'per_sample' or \
@@ -267,6 +267,20 @@ class CNN():
             X_test = impro.standardize_data(data=X_test, mode=self.standardization_mode)
         else:
             print('Test data is not standardized.')
+           
+        # Expand the dimensions
+        if len(X_test.shape) == 3:
+            # Expand the batch (dim0) and channels (dim4)
+            X_test = np.expand_dims(np.expand_dims(X_test, axis=0), axis=4)
+        if len(X_test.shape) == 4:
+            # Expand the channels (dim4)
+            X_test = np.expand_dims(X_test, axis=4)
+        if len(y_test.shape) == 3:
+            # Expand the batch (dim0) and channels (dim4)
+            y_test = np.expand_dims(np.expand_dims(y_test, axis=0), axis=4)
+        if len(y_test.shape) == 4:
+            # Expand the channels (dim4)
+            y_test = np.expand_dims(y_test, axis=4)
             
         test_loss = self.model.evaluate(x=X_test, y=y_test, batch_size=batch_size, verbose=1, 
                             sample_weight=None, steps=None)
