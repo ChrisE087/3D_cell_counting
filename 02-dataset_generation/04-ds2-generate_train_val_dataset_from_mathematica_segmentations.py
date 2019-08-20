@@ -34,54 +34,54 @@ def divide_data(data, dim_order='XYZ'):
 path_to_data = os.path.join('..', '..', '..', 'Daten2')
 
 # Specify the suffix of the target-data
-target_suffix = 'NucleiBinary' # 'gauss_centroids', 'NucleiBinary' or 'NucleiBinary_filtered'
+target_suffix = 'NucleiBinary_filtered' # 'gauss_centroids', 'NucleiBinary' or 'NucleiBinary_filtered'
 
 # Make a list of which spheroids from the dataset are chosen for the training 
 # and validation dataset
-train_list = [#['Fibroblasten', '1_draq5'],
-              #['Fibroblasten', '2_draq5'],
-              #['Fibroblasten', '3_draq5'],
-              #['Fibroblasten', '4_draq5'],
-              #['Fibroblasten', '5_draq5'],
-              #['Fibroblasten', '7_draq5'],
-              #['Fibroblasten', '8_draq5'],
-              #['Fibroblasten', '9_draq5'],
-              #['Fibroblasten', '10_draq5'],
-              #['Hacat', 'C3-2'],
-              #['Hacat', 'C3-3'],
-              #['Hacat', 'C3-4'],
-              #['Hacat', 'C3-5'],
-              #['Hacat', 'C3-6'],
-              #['Hacat', 'C3-7'],
-              #['Hacat', 'C3-8'],
-              #['Hacat', 'C3-9'],
+train_list = [['Fibroblasten', '1_draq5'],
+              ['Fibroblasten', '2_draq5'],
+              ['Fibroblasten', '3_draq5'],
+              ['Fibroblasten', '4_draq5'],
+              ['Fibroblasten', '5_draq5'],
+              ['Fibroblasten', '7_draq5'],
+              ['Fibroblasten', '8_draq5'],
+              ['Fibroblasten', '9_draq5'],
+              ['Fibroblasten', '10_draq5'],
+              ['Hacat', 'C3-2'],
+              ['Hacat', 'C3-3'],
+              ['Hacat', 'C3-4'],
+              ['Hacat', 'C3-5'],
+              ['Hacat', 'C3-6'],
+              ['Hacat', 'C3-7'],
+              ['Hacat', 'C3-8'],
+              ['Hacat', 'C3-9'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_01'],
-              #['HT29', 'C2-HT29_Glycerol_Ki67_02'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_02'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_03_'],
-              #['HT29', 'C2-HT29_Glycerol_Ki67_03-1'],
-              #['HT29', 'C2-HT29_Glycerol_Ki67_04'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_03-1'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_04'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_05'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_06'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_07'],
-              #['HT29', 'C2-HT29_Glycerol_Ki67_09'],
+              ['HT29', 'C2-HT29_Glycerol_Ki67_09'],
               ['HT29', 'C2-HT29_Glycerol_Ki67_10'],
-              #['HTC8', 'C3-2a'],
-              #['HTC8', 'C3-3'],
-              #['HTC8', 'C3-5'],
+              ['HTC8', 'C3-2a'],
+              ['HTC8', 'C3-3'],
+              ['HTC8', 'C3-5'],
               ['HTC8', 'C3-6l'],
               ['HTC8', 'C3-6r'],
               ['HTC8', 'C3-8_'],
               ['HTC8', 'C3-8c'],
               ['HTC8', 'C3-9'],
-              #['HTC8', 'C3-10'],
-              #['NPC1', 'C3-2'],
+              ['HTC8', 'C3-10'],
+              ['NPC1', 'C3-2'],
               ['NPC1', 'C3-3'],
-              #['NPC1', 'C3-4'],
-              #['NPC1', 'C3-5'],
+              ['NPC1', 'C3-4'],
+              ['NPC1', 'C3-5'],
               ['NPC1', 'C3-6'],
               ['NPC1', 'C3-7'],
-              ['NPC1', 'C3-8']]
-              #['NPC1', 'C3-9']]
+              ['NPC1', 'C3-8'],
+              ['NPC1', 'C3-9']]
 
 # Deprecated
 val_list = []
@@ -129,7 +129,6 @@ if not os.path.exists(val_export_path):
 # Generate the dataset
 ###############################################################################
 dataset_list = [train_list, val_list]
-session = tf.Session()
 
 for n in range(len(dataset_list)):
     data_list = dataset_list[n]
@@ -191,6 +190,7 @@ for n in range(len(dataset_list)):
                                     # With the parameter 'input_dim_order='XYZ' the
                                     # input data 'X' is transposed to 'ZYX' before generating
                                     # the patches. So the patches are in dimension-order 'ZYX'
+                                    session = tf.Session()
                                     patches_X = impro.gen_patches(session=session, data=X, patch_slices=size_z, patch_rows=size_y,
                                                             patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y,
                                                             stride_cols=stride_x, input_dim_order='XYZ', padding=padding) #ZYX
@@ -199,6 +199,8 @@ for n in range(len(dataset_list)):
                                     patches_y = impro.gen_patches(session=session, data=y, patch_slices=size_z, patch_rows=size_y,
                                                             patch_cols=size_x, stride_slices=stride_z, stride_rows=stride_y,
                                                             stride_cols=stride_x, input_dim_order='XYZ', padding=padding) #ZYX
+                                    session.close()
+                                    tf.reset_default_graph()
                                     
                                     if padding == 'SAME':
                                         print('Undo the workaround...')
