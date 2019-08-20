@@ -77,7 +77,7 @@ for directory in os.listdir(path_to_data):
                                 # Load the ground-truth
                                 centroids_file = os.path.join(res_dir, centroids_filename)
                                 centroids, centroids_header = nrrd.read(centroids_file) #XYZ
-                                num_of_cells_ground_truth = np.sum(centroids)
+                                num_of_cells_ground_truth = np.sum(centroids).astype(np.float)
     
                                 # Predict the density-map
                                 spheroid_new, density_map, num_of_cells_predicted = cnn.predict_density_map(path_to_spheroid=spheroid_file, patch_sizes=patch_sizes, 

@@ -22,6 +22,7 @@ tools/ALT
 04-conv_net/model_export/BACKUP
 04-conv_net/export
 05-validation/ALT
+05-validation/results
 
 # Ignore files
 *.zip

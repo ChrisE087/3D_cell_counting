@@ -23,6 +23,9 @@ def get_files_in_directory(a_dir):
 # Specify the data dir
 path_to_data = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..', '..', 'Daten2'))
 
+# Specify the suffix of the ground-truth
+centroids_suffix = '-centroids' # '-centroids'
+
 # Specify the patch sizes and strides in each direction (ZYX)
 patch_sizes = (32, 32, 32)
 strides = (32, 32, 32)
@@ -34,13 +37,13 @@ cut_border = None #(8,8,8)
 padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join('..', '04-conv_net', 'model_export', 'dataset_mix', '2019-08-12_14-42-57_100000.0')
+model_import_path = os.path.join('..', '04-conv_net', 'model_export', 'dataset_mix', '2019-08-13_22-25-12_1_3_train_samples_fiji_and_mathematica_segmentations')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
 
 # Specify the linear output scaling factor !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-linear_output_scaling_factor = 1e5#1e11#409600000000
+linear_output_scaling_factor = 1#1e11#409600000000
 
 # Specify if the results are saved
 save_results = False
@@ -73,21 +76,24 @@ for subdir1 in subdirs1:
                 res_dir = os.path.abspath(os.path.join(spheroid_dir, subdir2))
                 centroid_files = get_files_in_directory(res_dir)
                 for centroids_file in centroid_files:
-                    if spheroid_name + '-centroids' in centroids_file and centroids_file.endswith('.nrrd'):
+                    if spheroid_name + centroids_suffix in centroids_file and centroids_file.endswith('.nrrd'):
                         spheroid_file = os.path.abspath(spheroid_file)
                         print('Predicting: ', spheroid_file)
                         
                         # Load the ground-truth
                         centroids_file = os.path.join(os.path.abspath(spheroid_dir), subdir2, centroids_file)
                         centroids, centroids_header = nrrd.read(centroids_file) # XYZ
-                        num_of_cells_ground_truth = np.sum(centroids).astype(np.float)
+                        num_of_cells_ground_truth = np.sum(centroids).astype(np.int)
                         
-                        # Predict the density-map
-                        spheroid_new, density_map, num_of_cells_predicted = cnn.predict_density_map(path_to_spheroid=spheroid_file, patch_sizes=patch_sizes, 
-                                                                                                 strides=strides, border=cut_border, padding=padding)
+                        # Predict the segmentation
+                        spheroid_new, segmentation, segmentation_thresholded = cnn.predict_segmentation(path_to_spheroid=spheroid_file, patch_sizes=patch_sizes, 
+																									 strides=strides, border=cut_border, padding=padding, threshold=0.93, label=True)
+                        
+                        # Greatest label represents the number of cells in the spheroid
+                        num_of_cells_predicted = np.max(segmentation_thresholded).astype(np.int)
                         
                         # Calculate the difference from the ground-truth
-                        abs_diff = num_of_cells_ground_truth - num_of_cells_predicted
+                        abs_diff = num_of_cells_predicted - num_of_cells_ground_truth
                         perc_diff = 100-(num_of_cells_predicted*100/num_of_cells_ground_truth)
                         
                         # Log the number of cells in a table

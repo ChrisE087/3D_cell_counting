@@ -77,14 +77,14 @@ for directory in os.listdir(path_to_data):
                                 # Load the ground-truth
                                 centroids_file = os.path.join(res_dir, centroids_filename)
                                 centroids, centroids_header = nrrd.read(centroids_file) #XYZ
-                                num_of_cells_ground_truth = np.sum(centroids)
+                                num_of_cells_ground_truth = np.sum(centroids).astype(np.int)
     
                                 # Predict the segmentation
                                 spheroid_new, segmentation, segmentation_thresholded = cnn.predict_segmentation(path_to_spheroid=spheroid_file, patch_sizes=patch_sizes, 
     																									 strides=strides, border=cut_border, padding=padding, threshold=0.93, label=True)
                                 
                                 # Greatest label represents the number of cells in the spheroid
-                                num_of_cells_predicted = np.max(segmentation_thresholded)
+                                num_of_cells_predicted = np.max(segmentation_thresholded).astype(np.int)
                                 
                                 # Calculate the difference from the ground-truth
                                 abs_diff = num_of_cells_ground_truth - num_of_cells_predicted
