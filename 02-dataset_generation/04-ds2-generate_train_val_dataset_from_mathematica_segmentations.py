@@ -173,6 +173,7 @@ for n in range(len(dataset_list)):
                                     # Make the segmentation binary and bring it into range 0 to 1
                                     if target_suffix == 'NucleiBinary' or target_suffix == 'NucleiBinary_filtered':
                                         y[y > 0] = 1
+                                        y = y.astype(np.uint8)
                                     
                                     # WORKAROUND: Scale the target data (Normalize and
                                     # scale with factor) and make a unit16
