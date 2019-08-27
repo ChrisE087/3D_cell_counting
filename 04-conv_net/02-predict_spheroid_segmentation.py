@@ -24,16 +24,17 @@ def threshold_filter(data, threshold):
 
 # Specify the patch sizes and strides in each direction (ZYX)
 patch_sizes = (32, 32, 32)
-strides = (16, 16, 16)
+strides = (32, 32, 32)
+#strides = (16, 16, 16)
 
 # Specify the border around a patch in each dimension (ZYX), which is removed
-cut_border = (8,8,8)
+cut_border = None#(8,8,8)
 
 # Specify the padding which is used for the prediction of the patches
 padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join(os.getcwd(), 'model_export', 'dataset1', '2019-08-10_09-13-46_1_3_train_samples_fiji_SEGMENTATIONS_crossentropy_256_epochs')
+model_import_path = os.path.join(os.getcwd(), 'model_export', '2019-08-22_20-52-45_1')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -75,7 +76,7 @@ plt.imshow(segmentation[int(segmentation.shape[0]/2),])
 print(np.max(segmentation_thresholded))
 
 # Testing
-#segmentation_thresholded = threshold_filter(segmentation, threshold=0.96)
+#segmentation_thresholded = threshold_filter(segmentation, threshold=0.95)
 #segmentation_thresholded = cc3d.connected_components(segmentation_thresholded, connectivity=6)
 #print(np.max(segmentation_thresholded))
 

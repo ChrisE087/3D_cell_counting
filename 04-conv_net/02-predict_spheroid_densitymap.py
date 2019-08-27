@@ -26,7 +26,7 @@ cut_border = None #(8,8,8)
 padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join(os.getcwd(), 'model_export', 'dataset_mix', '2019-08-12_14-42-57_100000.0_train_samples_fiji_and_mathematica_densitymaps')
+model_import_path = os.path.join(os.getcwd(), 'model_export', 'NEW_MODEL', 'DensityMaps', 'dataset1', '2019-08-26_21-47-06_100000.0')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -40,8 +40,8 @@ save_results = True
 #%%############################################################################
 # Read the data
 ###############################################################################
-category = '24h'
-spheroid_name = 'C2-untreated_1.2.nrrd'
+category = '48h'
+spheroid_name = 'C2-untreated_4.1.nrrd'
 path_to_spheroid = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
 
 #category = 'Fibroblasten'
