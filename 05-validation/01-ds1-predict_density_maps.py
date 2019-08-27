@@ -19,19 +19,21 @@ centroids_filename = 'centroids_fiji_seg.nrrd' # 'centroids_fiji_seg.nrrd' or 'c
 
 # Specify the patch sizes and strides in each direction (ZYX)
 patch_sizes = (32, 32, 32)
+#strides = (16, 16, 16)
 strides = (32, 32, 32)
 
 # Specify if only channel 2 data is predicted
 predict_only_c2 = True
 
 # Specify the border around a patch in each dimension (ZYX), which is removed
-cut_border = None #(8,8,8)
+#cut_border = (8, 8, 8)
+cut_border = None
 
 # Specify the padding which is used for the prediction of the patches
 padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join('..', '04-conv_net', 'model_export', 'dataset_mix', '2019-08-12_14-42-57_100000.0')
+model_import_path = os.path.join('..', '04-conv_net', 'model_export', 'NEW_MODEL', 'DensityMaps', 'dataset1', '2019-08-26_21-47-06_100000.0')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -91,6 +93,7 @@ for directory in os.listdir(path_to_data):
                                 #spheroid_title = res_dir.split(os.path.sep)[2] + '->' + spheroid_name
                                 cultivation_period = res_dir.split(os.path.sep)[2]
                                 table.append([cultivation_period, spheroid_name, num_of_cells_ground_truth, num_of_cells_predicted, abs_diff, perc_diff])
+                                print('Predicted: ', num_of_cells_predicted, ' (', num_of_cells_ground_truth,')')
                             
 with open('predicted_cell_numbers_dataset1_fiji_segmentations.txt','w') as file:
     for item in table:

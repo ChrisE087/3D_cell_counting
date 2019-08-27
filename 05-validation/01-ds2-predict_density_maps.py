@@ -34,7 +34,7 @@ cut_border = None #(8,8,8)
 padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join('..', '04-conv_net', 'model_export', 'dataset_mix', '2019-08-12_14-42-57_100000.0')
+model_import_path = os.path.join('..', '04-conv_net', 'model_export', 'NEW_MODEL', 'DensityMaps', 'dataset_mix', '2019-08-25_17-25-24_100000.0')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -74,26 +74,28 @@ for subdir1 in subdirs1:
                 centroid_files = get_files_in_directory(res_dir)
                 for centroids_file in centroid_files:
                     if spheroid_name + '-centroids' in centroids_file and centroids_file.endswith('.nrrd'):
-                        spheroid_file = os.path.abspath(spheroid_file)
-                        print('Predicting: ', spheroid_file)
-                        
-                        # Load the ground-truth
-                        centroids_file = os.path.join(os.path.abspath(spheroid_dir), subdir2, centroids_file)
-                        centroids, centroids_header = nrrd.read(centroids_file) # XYZ
-                        num_of_cells_ground_truth = np.sum(centroids).astype(np.float)
-                        
-                        # Predict the density-map
-                        spheroid_new, density_map, num_of_cells_predicted = cnn.predict_density_map(path_to_spheroid=spheroid_file, patch_sizes=patch_sizes, 
-                                                                                                 strides=strides, border=cut_border, padding=padding)
-                        
-                        # Calculate the difference from the ground-truth
-                        abs_diff = num_of_cells_ground_truth - num_of_cells_predicted
-                        perc_diff = 100-(num_of_cells_predicted*100/num_of_cells_ground_truth)
-                        
-                        # Log the number of cells in a table
-                        #spheroid_title = res_dir.split(os.path.sep)[2] + '->' + spheroid_name
-                        category = res_dir.split(os.path.sep)[2]
-                        table.append([category, spheroid_name, num_of_cells_ground_truth, num_of_cells_predicted, abs_diff, perc_diff])
+                        if 'NPC1' in subdir1:
+                            spheroid_file = os.path.abspath(spheroid_file)
+                            print('Predicting: ', spheroid_file)
+                            
+                            # Load the ground-truth
+                            centroids_file = os.path.join(os.path.abspath(spheroid_dir), subdir2, centroids_file)
+                            centroids, centroids_header = nrrd.read(centroids_file) # XYZ
+                            num_of_cells_ground_truth = np.sum(centroids).astype(np.float)
+                            
+                            # Predict the density-map
+                            spheroid_new, density_map, num_of_cells_predicted = cnn.predict_density_map(path_to_spheroid=spheroid_file, patch_sizes=patch_sizes, 
+                                                                                                     strides=strides, border=cut_border, padding=padding)
+                            
+                            # Calculate the difference from the ground-truth
+                            abs_diff = num_of_cells_ground_truth - num_of_cells_predicted
+                            perc_diff = 100-(num_of_cells_predicted*100/num_of_cells_ground_truth)
+                            
+                            # Log the number of cells in a table
+                            #spheroid_title = res_dir.split(os.path.sep)[2] + '->' + spheroid_name
+                            category = res_dir.split(os.path.sep)[2]
+                            table.append([category, spheroid_name, num_of_cells_ground_truth, num_of_cells_predicted, abs_diff, perc_diff])
+                            print('Predicted: ', num_of_cells_predicted, ' (', num_of_cells_ground_truth,')')
                         
 ##%% Save the results in a table
 with open('predicted_cell_numbers_dataset2_mathematica_segmentations.txt','w') as file:
