@@ -187,12 +187,12 @@ def get_datasets(path_to_dataset, spheroid_names, num_train_spheroids=4, num_val
         
         # Choose the spheroids from the given dictionarys
         if train_spheroids != None and val_spheroids != None and test_spheroids != None:
-            train_spheroids = train_spheroids.get(spheroid_type)
-            val_spheroids = val_spheroids.get(spheroid_type)
-            test_spheroids = test_spheroids.get(spheroid_type)
+            train_spheroids_type = train_spheroids.get(spheroid_type)
+            val_spheroids_type = val_spheroids.get(spheroid_type)
+            test_spheroids_type = test_spheroids.get(spheroid_type)
             
-            for j in range(len(train_spheroids)):
-                spheroid = train_spheroids[j]
+            for j in range(len(train_spheroids_type)):
+                spheroid = train_spheroids_type[j]
                 if spheroid_type == 'untreated':
                     filename = spheroid
                 else:
@@ -202,8 +202,8 @@ def get_datasets(path_to_dataset, spheroid_names, num_train_spheroids=4, num_val
                 dataset_table.append([spheroid_type, spheroid, 'training'])
                 train_files.extend(subset)
             
-            for j in range(len(val_spheroids)):
-                spheroid = val_spheroids[j]
+            for j in range(len(val_spheroids_type)):
+                spheroid = val_spheroids_type[j]
                 if spheroid_type == 'untreated':
                     filename = spheroid
                 else:
@@ -213,8 +213,8 @@ def get_datasets(path_to_dataset, spheroid_names, num_train_spheroids=4, num_val
                 dataset_table.append([spheroid_type, spheroid, 'validation'])
                 val_files.extend(subset)
                 
-            for j in range(len(test_spheroids)):
-                spheroid = test_spheroids[j]
+            for j in range(len(test_spheroids_type)):
+                spheroid = test_spheroids_type[j]
                 if spheroid_type == 'untreated':
                     filename = spheroid
                 else:
