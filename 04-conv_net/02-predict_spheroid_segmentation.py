@@ -24,17 +24,18 @@ def threshold_filter(data, threshold):
 
 # Specify the patch sizes and strides in each direction (ZYX)
 patch_sizes = (32, 32, 32)
-strides = (32, 32, 32)
+#strides = (32, 32, 32)
+strides = (28, 28, 28)
 #strides = (16, 16, 16)
 
 # Specify the border around a patch in each dimension (ZYX), which is removed
-cut_border = None#(8,8,8)
+cut_border = (2,2,2)#None#(8,8,8)
 
 # Specify the padding which is used for the prediction of the patches
 padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join(os.getcwd(), 'model_export', '2019-08-22_20-52-45_1')
+model_import_path = os.path.join(os.getcwd(), 'model_export', 'FINAL', 'dataset_mix', 'segmentations', '2019-08-28_22-40-35_1')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -48,13 +49,13 @@ save_results = True
 #%%############################################################################
 # Read the data
 ###############################################################################
-category = '48h'
-spheroid_name = 'C2-untreated_2.nrrd'
-path_to_spheroid = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
+#category = '48h'
+#spheroid_name = 'C2-untreated_2.nrrd'
+#path_to_spheroid = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
 
-#category = 'Fibroblasten'
-#spheroid_name = '5_draq5.nrrd'
-#path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
+category = 'Fibroblasten'
+spheroid_name = '10_draq5_normalized.nrrd'
+path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
 
 #%%############################################################################
 # Initialize the CNN
@@ -68,17 +69,21 @@ cnn.load_model_json(model_import_path, 'model_json', 'best_weights')
 ###############################################################################
 spheroid_new, segmentation, segmentation_thresholded = cnn.predict_segmentation(path_to_spheroid=path_to_spheroid, patch_sizes=patch_sizes, 
                                                                strides=strides, border=cut_border, padding=padding, threshold=0.95, label=True)
+
+
+# Testing
+segmentation_thresholded = threshold_filter(segmentation, threshold=0.9)
+segmentation_thresholded = cc3d.connected_components(segmentation_thresholded, connectivity=6)
+print(np.max(segmentation_thresholded))
+
 plt.figure()
 plt.imshow(spheroid_new[int(spheroid_new.shape[0]/2),])
 plt.figure()
 plt.imshow(segmentation[int(segmentation.shape[0]/2),])
+plt.figure()
+plt.imshow(segmentation_thresholded[int(segmentation_thresholded.shape[0]/2),])
 #segmentation_thresholded = np.transpose(segmentation_thresholded, axes=(2,1,0))
 print(np.max(segmentation_thresholded))
-
-# Testing
-#segmentation_thresholded = threshold_filter(segmentation, threshold=0.95)
-#segmentation_thresholded = cc3d.connected_components(segmentation_thresholded, connectivity=6)
-#print(np.max(segmentation_thresholded))
 
 
 #%%############################################################################

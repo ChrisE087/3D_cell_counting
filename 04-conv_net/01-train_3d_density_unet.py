@@ -12,6 +12,9 @@ from tools.cnn import CNN
 from tools import datagen
 from tools import image_processing as impro
 from tools import datatools
+import pickle
+import pandas as pd
+import json
 
 def plot_dataset_histogram(path_to_dataset, data_list, hist_export_file=None):
     cell_numbers = []
@@ -126,9 +129,9 @@ test_spheroids = {'untreated': [ '24h_C2-untreated_2.2',
                                 '72h_C2-untreated_4']}
     
 # Specify the number of spheroids per dataset
-num_train_spheroids = 8
-num_val_spheroids = 3
-num_test_spheroids = 3
+num_train_spheroids = 4
+num_val_spheroids = 1
+num_test_spheroids = 1
 
 # Dataset Parameters
 path_to_dataset = os.path.join('..', '..', '..', 'Datensaetze', 'dataset_density-maps_fiji_and_mathematica_filtered')
@@ -142,7 +145,7 @@ test_percentage = 1
 # Model Parameters
 input_shape = data_shape + (channels,)
 #filters_exp = 4 # 2^filters_exp filters for the first layer
-n_filters = 4 # Number of filters for the first layer
+n_filters = 8 # Number of filters for the first layer
 kernel_size = (3, 3, 3)
 kernel_initializer = 'glorot_uniform'#'he_normal'
 pool_size = (2, 2, 2)
@@ -179,7 +182,7 @@ evaluate = True
 #optimizer = keras.optimizers.SGD(lr=learning_rate)
 loss = ['mse']
 metrics = ['mae']
-load_model = False
+load_model = True
 
 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M-%S')
 timestamp = timestamp+'_'+str(linear_output_scaling_factor)
@@ -205,7 +208,7 @@ callbacks = [tensor_board_cb, checkpoint]
 # Prepare the training data
 ###############################################################################
 # Example if you want to choose the spheroids used for train val and testing randomized
-train_files, val_files, test_files, dataset_table = datatools.get_datasets(path_to_dataset=path_to_dataset, spheroid_names=spheroid_names_dataset_1, 
+train_files, val_files, test_files, dataset_table = datatools.get_datasets(path_to_dataset=path_to_dataset, spheroid_names=spheroid_names_dataset_all, 
                                                                  num_train_spheroids=num_train_spheroids, num_val_spheroids=num_val_spheroids, 
                                                                  num_test_spheroids=num_test_spheroids, train_spheroids=None, 
                                                                  val_spheroids=None, test_spheroids=None)
@@ -278,6 +281,31 @@ history = cnn.fit_generator(epochs=epochs, train_generator=train_generator, val_
                        callbacks=callbacks)
 
 ###############################################################################
+# Export the model history
+###############################################################################
+# As pickle
+hist_pickle_file = os.path.join(model_export_path, 'history_dict.p')
+with open(hist_pickle_file, 'wb') as pickle_file:
+    pickle.dump(history.history, pickle_file)
+    
+# As json
+hist_json_file = os.path.join(model_export_path, 'history_pd.json')
+with open(hist_json_file, 'w') as f:
+    json.dump(history.history, f)
+    
+# As pandas
+history_df = pd.DataFrame(history.history)
+# save to json:  
+hist_pd_json_file = os.path.join(model_export_path, 'history_pd.json')
+with open(hist_pd_json_file, mode='w') as f:
+    history_df.to_json(f)
+# or save to csv: 
+hist_pd_csv_file = os.path.join(model_export_path, 'history.csv')
+with open(hist_pd_csv_file, mode='w') as f:
+    history_df.to_csv(f)
+
+
+###############################################################################
 # Evaluate the model
 ###############################################################################
 # Load unstandardized test data
@@ -287,7 +315,6 @@ X_test_data, y_test_data = datatools.load_data(path_to_dataset=path_to_dataset,
                                                border=border)
 if evaluate == True:
     # Evaluate the model on the test-data
-    
     test_loss = cnn.evaluate_model(X_test=X_test_data, y_test=y_test_data, batch_size=batch_size)
     print(test_loss)
     
@@ -310,9 +337,22 @@ cnn.save_model_single_file(model_export_path, 'model_single')
 # Load the model
 ###############################################################################
 if load_model == True:
-    import_path = os.path.join(os.getcwd(), 'model_export', '2019-06-12_21-46-36')
+    # Load the model with the best weights
+    import_path = model_export_path#os.path.join(os.getcwd(), 'model_export', timestamp)
     #cnn.load_model_single_file(import_path, 'model_single')
-    cnn.load_model_json(import_path, 'model_json', 'model_weights')
+    cnn.load_model_json(import_path, 'model_json', 'best_weights')
+    
+    # Evaluate the model on the test data
+    summary = cnn.compile_model(loss=loss, optimizer=optimizer, metrics=metrics)
+    test_loss_best_weights = cnn.evaluate_model(X_test=X_test_data, y_test=y_test_data, batch_size=batch_size)
+    print(test_loss_best_weights)
+    
+    # Export the value of the test-loss
+    test_loss_export_path = os.path.join(model_export_path, 'test_loss_best_weights.txt')
+    with open(test_loss_export_path,'w') as file:
+        for l in range(len(test_loss_best_weights)):
+            file.write(str(test_loss_best_weights[l])+'\n')
+    
 
 ###############################################################################
 # Predict some data
