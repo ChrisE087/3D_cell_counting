@@ -106,7 +106,7 @@ padding = 'VALID'
 
 # Specify the threshold for saving a patch. Patches in which the number of cells
 # is greater than the threshold are saved to disk.
-thresh = 0.0
+thresh = -1.0   # Values < 0 -> Padding is saved as training files
 
 #%%############################################################################
 # Create the export folders if they don't exist
@@ -230,7 +230,7 @@ for n in range(len(dataset_list)):
                                                 patch_y = patches_y[pz,py,px,:,:,:]
             
                                                 # Don't save the paddings
-                                                if(np.sum(patch_y) > thresh):
+                                                if(np.sum(patch_X) > thresh) and (np.sum(patch_y) > thresh):
                                                     # Generate a pair of data
                                                     sample = np.zeros(shape=(2, patch_X.shape[0], patch_X.shape[1], patch_X.shape[2]), dtype=np.float32)
                                                     sample[0] = patch_X
