@@ -145,7 +145,7 @@ test_percentage = 1
 # Model Parameters
 input_shape = data_shape + (channels,)
 #filters_exp = 4 # 2^filters_exp filters for the first layer
-n_filters = 8 # Number of filters for the first layer
+n_filters = 1 # Number of filters for the first layer
 kernel_size = (3, 3, 3)
 kernel_initializer = 'glorot_uniform'#'he_normal'
 pool_size = (2, 2, 2)
@@ -173,7 +173,7 @@ linear_output_scaling_factor = 1e5#1e12#409600000000
 #learning_rate = 0.005
 learning_rate = 0.005
 epochs = 128
-batch_size = 256
+batch_size = 2048
 optimizer = keras.optimizers.adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, 
                                   epsilon=None, decay=0.0, amsgrad=False)
 #optimizer = keras.optimizers.SGD(lr=learning_rate, momentum=0., decay=0., nesterov=False)

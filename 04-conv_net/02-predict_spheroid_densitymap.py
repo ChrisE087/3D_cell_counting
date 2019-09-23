@@ -17,16 +17,18 @@ from tools import datatools
 
 # Specify the patch sizes and strides in each direction (ZYX)
 patch_sizes = (32, 32, 32)
-strides = (32, 32, 32)
+strides = (28, 28, 28)
+#strides = (16, 16, 16)
 
 # Specify the border around a patch in each dimension (ZYX), which is removed
-cut_border = None #(8,8,8)
+cut_border = (2, 2, 2) #None #(8,8,8)
+#cut_border = (8, 8, 8)
 
 # Specify the padding which is used for the prediction of the patches
-padding = 'VALID'
+padding = 'SAME'
 
 # Specify which model is used
-model_import_path = os.path.join(os.getcwd(), 'model_export', 'NEW_MODEL', 'DensityMaps', 'dataset1', '2019-08-26_21-47-06_100000.0')
+model_import_path = os.path.join(os.getcwd(), 'model_export', 'FINAL', 'dataset_mix', 'CROSS-VALIDATION', 'complexity_4', '2019-09-14_22-42-22_100000.0')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -47,6 +49,10 @@ path_to_spheroid = os.path.join('..', '..', '..', 'Daten', category, 'untreated'
 #category = 'Fibroblasten'
 #spheroid_name = '5_draq5.nrrd'
 #path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
+
+#category = 'none'
+#spheroid_name = 'X.nrrd'
+#path_to_spheroid = os.path.join('..', '..', '..', 'Testdaten', 'OpenSegSPIM', 'Drosophila', spheroid_name)
 
 #%%############################################################################
 # Initialize the CNN
@@ -71,4 +77,4 @@ print('Number of cells = ', num_of_cells)
 ###############################################################################
 if save_results == True:
     nrrd.write(category+'-'+spheroid_name+'.nrrd', spheroid_new)
-    nrrd.write(category+'-'+spheroid_name+'-density_map.nrrd', density_map)
+    nrrd.write(category+'-'+spheroid_name+'-density_map2.nrrd', density_map)

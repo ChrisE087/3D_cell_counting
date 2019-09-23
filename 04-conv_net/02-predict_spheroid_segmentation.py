@@ -49,13 +49,13 @@ save_results = True
 #%%############################################################################
 # Read the data
 ###############################################################################
-#category = '48h'
-#spheroid_name = 'C2-untreated_2.nrrd'
-#path_to_spheroid = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
+category = '48h'
+spheroid_name = 'C2-untreated_2.nrrd'
+path_to_spheroid = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
 
-category = 'Fibroblasten'
-spheroid_name = '10_draq5_normalized.nrrd'
-path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
+#category = 'Fibroblasten'
+#spheroid_name = '10_draq5_normalized.nrrd'
+#path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
 
 #%%############################################################################
 # Initialize the CNN
