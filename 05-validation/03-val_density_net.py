@@ -17,7 +17,7 @@ import pickle
 import pandas as pd
 import json
 
-model_import_path = os.path.join('..', '04-conv_net', 'model_export', 'dataset_mix', '2019-08-12_14-42-57_100000.0_3_train_samples_fiji_and_mathematica_densitymaps')
+model_import_path = os.path.join('..', '04-conv_net', 'model_export', 'CROSS-VALIDATION', 'complexity_16', '2019-09-06_00-18-55_100000.0')
 weights = 'best_weights' #'model_weights' or 'best_weights'
 
 ###############################################################################
@@ -120,23 +120,17 @@ val_spheroids = {'untreated': [ '24h_C2-untreated_2.1',
 #                  'HTC8': ['C3-8_'],
 #                  'NPC1': ['C3-9']}
 
-test_spheroids = {'untreated': ['24h_C2-untreated_2.2',
-                                '24h_C2-untreated_2.3'],
-                  'Fibroblasten': ['3_draq5',
-                                   '10_draq5'],
-                  'Hacat': ['C3-5',
-                            'C3-6'],
-                  'HT29': ['C2-HT29_Glycerol_Ki67_03',
-                           'C2-HT29_Glycerol_Ki67_06'],
-                  'HTC8': ['C3-8_',
-                           'C3-9'],
-                  'NPC1': ['C3-3',
-                           'C3-6']}
+test_spheroids = {'untreated': ['72h_C2-untreated_1'],
+                  'Fibroblasten': ['8_draq5'],
+                  'Hacat': ['C3-7'],
+                  'HT29': ['C2-HT29_Glycerol_Ki67_05'],
+                  'HTC8': ['C3-9'],
+                  'NPC1': ['C3-7']}
     
 # Specify the number of spheroids per dataset
-num_train_spheroids = 8
-num_val_spheroids = 2
-num_test_spheroids = 2
+num_train_spheroids = 4
+num_val_spheroids = 1
+num_test_spheroids = 1
 
 
 # Dataset Parameters
