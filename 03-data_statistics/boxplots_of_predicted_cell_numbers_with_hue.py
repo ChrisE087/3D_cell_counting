@@ -5,7 +5,7 @@ import os
 
 # Load a table of data
 path_to_table1 = os.path.join('..', '..', '..', 'Notizen', 'Analyse Zellanzahl Vergleich der Trainings', 'Vorhersagen durch Segmentierung', 'box_plot.csv')
-path_to_table1 = os.path.join('Anhang_F.csv')
+path_to_table1 = os.path.join('Anhang_B-D.csv')
 predictions1 = pd.read_csv(path_to_table1, sep=';')
 
 # Make a Boxplot
