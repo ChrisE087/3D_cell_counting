@@ -25,10 +25,10 @@ cut_border = (2, 2, 2) #None #(8,8,8)
 #cut_border = (8, 8, 8)
 
 # Specify the padding which is used for the prediction of the patches
-padding = 'SAME'
+padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join(os.getcwd(), 'model_export', 'FINAL', 'dataset_mix', 'CROSS-VALIDATION', 'complexity_4', '2019-09-14_22-42-22_100000.0')
+model_import_path = os.path.join('..', '..', '..', 'Ergebnisse', 'CNNs', 'Universalnetze', 'density_maps', '2019-08-12_14-42-57_100000.0_3_train_samples_fiji_and_mathematica_densitymaps')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -42,13 +42,13 @@ save_results = True
 #%%############################################################################
 # Read the data
 ###############################################################################
-category = '48h'
-spheroid_name = 'C2-untreated_4.1.nrrd'
-path_to_spheroid = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
+#category = '72h'
+#spheroid_name = 'C2-untreated_1.nrrd'
+#path_to_spheroid = os.path.join('..', '..', '..', 'Datensaetze', 'Aufnahmen_und_Segmentierungen', 'Datensatz1', category, 'untreated', spheroid_name)
 
-#category = 'Fibroblasten'
-#spheroid_name = '5_draq5.nrrd'
-#path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
+category = 'NPC1'
+spheroid_name = 'C3-2.nrrd'
+path_to_spheroid = os.path.join('..', '..', '..', 'Datensaetze', 'Aufnahmen_und_Segmentierungen', 'Datensatz2', category, spheroid_name)
 
 #category = 'none'
 #spheroid_name = 'X.nrrd'
@@ -76,5 +76,6 @@ print('Number of cells = ', num_of_cells)
 # Save the results
 ###############################################################################
 if save_results == True:
-    nrrd.write(category+'-'+spheroid_name+'.nrrd', spheroid_new)
-    nrrd.write(category+'-'+spheroid_name+'-density_map2.nrrd', density_map)
+    export_name = spheroid_name[0:-5]
+    nrrd.write(category+'-'+export_name+'-nuclei.nrrd', spheroid_new)
+    nrrd.write(category+'-'+export_name+'-density_map.nrrd', density_map)

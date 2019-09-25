@@ -35,8 +35,7 @@ cut_border = (2,2,2)#None#(8,8,8)
 padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join(os.getcwd(), 'model_export', 'FINAL', 'dataset_mix', 'segmentations', '2019-08-28_22-40-35_1')
-
+model_import_path = os.path.join('..', '..', '..', 'Ergebnisse', 'CNNs', 'Universalnetze', 'segmentations', '2019-08-28_22-40-35_1')
 # Specify the standardization mode
 standardization_mode = 'per_sample'
 
@@ -49,13 +48,13 @@ save_results = True
 #%%############################################################################
 # Read the data
 ###############################################################################
-category = '48h'
-spheroid_name = 'C2-untreated_2.nrrd'
-path_to_spheroid = os.path.join('..', '..', '..', 'Daten', category, 'untreated', spheroid_name)
+category = '72h'
+spheroid_name = 'C2-untreated_1.nrrd'
+path_to_spheroid = os.path.join('..', '..', '..', 'Datensaetze', 'Aufnahmen_und_Segmentierungen', 'Datensatz1', category, 'untreated', spheroid_name)
 
-#category = 'Fibroblasten'
-#spheroid_name = '10_draq5_normalized.nrrd'
-#path_to_spheroid = os.path.join('..', '..', '..', 'Daten2', category, spheroid_name)
+#category = 'NPC1'
+#spheroid_name = 'C3-2.nrrd'
+#path_to_spheroid = os.path.join('..', '..', '..', 'Datensaetze', 'Aufnahmen_und_Segmentierungen', 'Datensatz2', category, spheroid_name)
 
 #%%############################################################################
 # Initialize the CNN
@@ -68,13 +67,13 @@ cnn.load_model_json(model_import_path, 'model_json', 'best_weights')
 # Predict the density-map
 ###############################################################################
 spheroid_new, segmentation, segmentation_thresholded = cnn.predict_segmentation(path_to_spheroid=path_to_spheroid, patch_sizes=patch_sizes, 
-                                                               strides=strides, border=cut_border, padding=padding, threshold=0.95, label=True)
+                                                               strides=strides, border=cut_border, padding=padding, threshold=0.93, label=True)
 
 
 # Testing
-segmentation_thresholded = threshold_filter(segmentation, threshold=0.9)
-segmentation_thresholded = cc3d.connected_components(segmentation_thresholded, connectivity=6)
-print(np.max(segmentation_thresholded))
+#segmentation_thresholded = threshold_filter(segmentation, threshold=0.9)
+#segmentation_thresholded = cc3d.connected_components(segmentation_thresholded, connectivity=6)
+#print(np.max(segmentation_thresholded))
 
 plt.figure()
 plt.imshow(spheroid_new[int(spheroid_new.shape[0]/2),])
@@ -90,6 +89,7 @@ print(np.max(segmentation_thresholded))
 # Save the results
 ###############################################################################
 if save_results == True:
-    nrrd.write(category+'-'+spheroid_name+'.nrrd', spheroid_new)
-    nrrd.write(category+'-'+spheroid_name+'-segmentation.nrrd', segmentation)
-    nrrd.write(category+'-'+spheroid_name+'-segmentation_thresh.nrrd', segmentation_thresholded)
+    export_name = spheroid_name[0:-5]
+    nrrd.write(category+'-'+export_name+'.nrrd', spheroid_new)
+    nrrd.write(category+'-'+export_name+'-segmentation.nrrd', segmentation)
+    nrrd.write(category+'-'+export_name+'-segmentation_thresh.nrrd', segmentation_thresholded)
