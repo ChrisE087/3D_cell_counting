@@ -28,7 +28,7 @@ cut_border = (2, 2, 2) #None #(8,8,8)
 padding = 'VALID'
 
 # Specify which model is used
-model_import_path = os.path.join('..', '..', '..', 'Ergebnisse', 'CNNs', 'Universalnetze', 'density_maps', '2019-08-12_14-42-57_100000.0_3_train_samples_fiji_and_mathematica_densitymaps')
+model_import_path = os.path.join('..', '..', '..', 'Ergebnisse', 'Kreuzvalidierung', 'Modelle', 'y_2', '2019-09-15_09-58-40_100000.0')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -37,17 +37,21 @@ standardization_mode = 'per_sample'
 linear_output_scaling_factor = 1e5#1e11#409600000000
 
 # Specify if the results are saved
-save_results = True
+save_results = False
 
 #%%############################################################################
 # Read the data
 ###############################################################################
-#category = '72h'
-#spheroid_name = 'C2-untreated_1.nrrd'
+#category = '48h'
+#spheroid_name = 'C2-untreated_4.1.nrrd'
 #path_to_spheroid = os.path.join('..', '..', '..', 'Datensaetze', 'Aufnahmen_und_Segmentierungen', 'Datensatz1', category, 'untreated', spheroid_name)
 
+category = 'Fibroblasten'
+category = 'Hacat'
+category = 'HT29'
+category = 'HTC8'
 category = 'NPC1'
-spheroid_name = 'C3-2.nrrd'
+spheroid_name = 'C3-9.nrrd'
 path_to_spheroid = os.path.join('..', '..', '..', 'Datensaetze', 'Aufnahmen_und_Segmentierungen', 'Datensatz2', category, spheroid_name)
 
 #category = 'none'
