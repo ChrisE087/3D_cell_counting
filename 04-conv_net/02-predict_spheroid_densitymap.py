@@ -25,10 +25,10 @@ cut_border = (2, 2, 2) #None #(8,8,8)
 #cut_border = (8, 8, 8)
 
 # Specify the padding which is used for the prediction of the patches
-padding = 'VALID'
+padding = 'SAME'
 
 # Specify which model is used
-model_import_path = os.path.join('..', '..', '..', 'Ergebnisse', 'Kreuzvalidierung', 'Modelle', 'y_max', '2019-09-06_00-18-55_100000.0')
+model_import_path = os.path.join('..', '..', '..', 'Ergebnisse', 'CNNs', 'Universalnetze', 'density_maps', '2019-08-12_14-42-57_100000.0_3_train_samples_fiji_and_mathematica_densitymaps')
 
 # Specify the standardization mode
 standardization_mode = 'per_sample'
@@ -52,13 +52,15 @@ save_results = False
 #category = 'Hacat'
 #category = 'HT29'
 #category = 'HTC8'
-category = 'NPC1'
-spheroid_name = 'C3-7.nrrd'
-path_to_spheroid = os.path.join('..', '..', '..', 'Datensaetze', 'Aufnahmen_und_Segmentierungen', 'Datensatz2', category, spheroid_name)
+#category = 'NPC1'
+#spheroid_name = 'C3-7.nrrd'
+#path_to_spheroid = os.path.join('..', '..', '..', 'Datensaetze', 'Aufnahmen_und_Segmentierungen', 'Datensatz2', category, spheroid_name)
 
 #category = 'none'
 #spheroid_name = 'X.nrrd'
 #path_to_spheroid = os.path.join('..', '..', '..', 'Testdaten', 'OpenSegSPIM', 'Drosophila', spheroid_name)
+
+path_to_spheroid = os.path.join('Skalierung', 'NPC1', 'C3-2-1_1-3_upper.nrrd')
 
 #%%############################################################################
 # Initialize the CNN
