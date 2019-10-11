@@ -56,11 +56,11 @@ save_results = False
 #spheroid_name = 'C3-7.nrrd'
 #path_to_spheroid = os.path.join('..', '..', '..', 'Datensaetze', 'Aufnahmen_und_Segmentierungen', 'Datensatz2', category, spheroid_name)
 
-#category = 'none'
-#spheroid_name = 'X.nrrd'
-#path_to_spheroid = os.path.join('..', '..', '..', 'Testdaten', 'OpenSegSPIM', 'Drosophila', spheroid_name)
+category = 'none'
+spheroid_name = 'X_scaled.nrrd'
+path_to_spheroid = os.path.join('..', '..', '..', 'Datensaetze', 'OpenSegSPIM_Beispieldaten', 'Neurosphere', spheroid_name)
 
-path_to_spheroid = os.path.join('Skalierung', 'NPC1', 'C3-2-1_1-3_upper.nrrd')
+#path_to_spheroid = os.path.join('Skalierung', 'NPC1', 'C3-2-1_1-3_upper.nrrd')
 
 #%%############################################################################
 # Initialize the CNN
